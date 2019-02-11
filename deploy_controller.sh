@@ -19,6 +19,6 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-ruby init_db.rb
-ruby init_users.rb
+# ruby init_db.rb
+# ruby init_users.rb
 ruby controller.rb
