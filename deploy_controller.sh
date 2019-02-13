@@ -19,8 +19,15 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+# The Database is now init by the backend
 # ruby init_db.rb
 # ruby init_users.rb
 
+# Run suite of tests
+echo "Launch Unit Testing"
+ruby -Ilib:test ./tests/test_all.rb
+
+echo "Init the lock"
 ruby init_lock.rb
+echo "Launch the Controller"
 ruby controller.rb

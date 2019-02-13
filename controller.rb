@@ -33,7 +33,7 @@
 
 require './lib/all'
 
-$log.level = Logger::DEBUG
+$log.level = Logger::INFO
 
 puts
 puts ">>> Splayd Controller #{SplayControllerConfig::CTLVersion} <<<"
@@ -43,7 +43,7 @@ puts "Splay Controller is licensed under GPL v3, see COPYING"
 puts
 
 Splayd.init
-$db.run("UPDATE locks SET job_reservation='0' WHERE id ='1'")
+$db.from(:locks).where('id = ?', '1').update(:job_reservation => '0')
 
 $db.disconnect
 $dbt.disconnect
@@ -67,6 +67,8 @@ fork do
 	$db = DBUtils.get_new
 	JobdStandard.run.join
 end
+
+
 
 fork do
 	$db = DBUtils.get_new
@@ -92,6 +94,18 @@ end
 fork do
 	$db = DBUtils.get_new
 	Blacklistd.run.join
+end
+
+if SplayControllerConfig::AllowNativeLibs
+	fork do
+	  $db = DBUtils.get_new
+	  JobdGrid.run.join
+	end
+end
+
+fork do
+	$db = DBUtils.get_new
+	JobdTraceAlt.run.join
 end
 
 # end only on interruption
