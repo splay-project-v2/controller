@@ -44,7 +44,6 @@ def self.get(name)
     @@mutex.synchronize do
       # TO TEST (transaction) or watch code, must be a Mutex like mine... +
       # BEGIN and COMMIT
-      #$dbt.transaction do |dbt|
       #@@db.do "BEGIN"
       @@db.transaction do
         locks = @@db.from(:locks).where(id: 1).first

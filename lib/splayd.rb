@@ -174,7 +174,6 @@ class Splayd
     $db.from(:splayds).where(id: @id).update(
       :name                       =>  addslashes(infos['settings']['name']),
       :version                    =>  addslashes(infos['status']['version']),
-      :protocol                   =>  addslashes(infos['settings']['protocol']),
       :lua_version                =>  addslashes(infos['status']['lua_version']),
       :bits                       =>  addslashes(infos['status']['bits']),
       :endianness                 =>  addslashes(infos['status']['endianness']),
@@ -197,7 +196,6 @@ class Splayd
     #$db.do "UPDATE splayds SET
     #name='#{addslashes(infos['settings']['name'])}',
     #version='#{addslashes(infos['status']['version'])}',
-    #protocol='#{addslashes(infos['settings']['protocol'])}',
     #lua_version='#{addslashes(infos['status']['lua_version'])}',
     #bits='#{addslashes(infos['status']['bits'])}',
     #endianness='#{addslashes(infos['status']['endianness'])}',
@@ -345,7 +343,7 @@ class Splayd
   # Restore actions in failure state.
   def restore_actions
     $log.info($db)
-    $db.run "SELECT * FROM actions WHERE status='FAILURE' AND splayd_id='#{@id[:id]}'" do |action|
+    $db.run "SELECT * FROM actions WHERE status='FAILURE' AND splayd_id='#{@id}'" do |action|
       if action[:command] == 'REGISTER'
         # We should put the FREE-REGISTER at the same place
         # where REGISTER was. But, no other register action concerning
@@ -387,46 +385,46 @@ class Splayd
   end
 
   def s_j_register job_id
-    $db.from(:splayd_jobs).where("splayd_id = ? AND job_id = ? AND status='RESERVED'", @id, job_id).update(:status => 'WAITING')
+    $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id},{job_id:job_id}, {status: "RESERVED"})).update(:status => 'WAITING')
   end
 
   def s_j_free job_id
-    $db.from(:splayd_jobs).where('splayd_id = ? AND job_id = ?', @id, job_id).delete
+    $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id},{job_id:job_id})).delete
   end
 
   def s_j_start job_id
-    $db.from(:splayd_jobs).where('splayd_id = ? AND job_id = ?', @id, job_id).update(:status => 'RUNNING')
+    $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id},{job_id:job_id})).update(:status => 'RUNNING')
   end
 
   def s_j_stop job_id
-    $db.from(:splayd_jobs).where('splayd_id = ? AND job_id = ?', @id, job_id).update(:status => 'WAITING')
+    $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id},{job_id:job_id})).update(:status => 'WAITING')
   end
 
   def s_j_status data
     data = JSON.parse data
     puts "Data content: #{data}"
-    $db.from(:splayd_jobs).where("status != 'RESERVED' AND splayd_id = ?", @id).each do |sj|
+    $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id}, {status: 'RESERVED'})).each do |sj|
       #  select_all "SELECT * FROM splayd_jobs WHERE
       #  		splayd_id='#{@id}' AND
       #  		status!='RESERVED'" do |sj|
-      job = $db.from(:jobs).where('id = ?', sj[:job_id]).first
+      job = $db.from(:jobs).where(id: sj[:job_id]).first
       # There is no difference in Lua between Hash and Array, so when it's
       # empty (an Hash), we encoded it like an empy Array.
       if data['jobs'].class == Hash and data['jobs'][job[:ref]]
       	if data['jobs'][job[:ref]]['status'] == "waiting"
-            $db.from(:splayd_jobs).where('id = ?', sj[:id]).update(:status => 'WAITING')
+            $db.from(:splayd_jobs).where(id: sj[:id]).update(:status => 'WAITING')
             #  do "UPDATE splayd_jobs SET status='WAITING'
             #		WHERE id='#{sj['id']}'"
       	end
       	# NOTE normally no needed because already set to RUNNING when
       	# we send the START command.
       	if data['jobs'][job[:ref]]['status'] == "running"
-            $db.from(:splayd_jobs).where('id = ?', sj[:id]).update(:status => 'RUNNING')
+            $db.from(:splayd_jobs).where(id: sj[:id]).update(:status => 'RUNNING')
             #do "UPDATE splayd_jobs SET status='RUNNING'
             #		WHERE id='#{sj['id']}'"
       	end
       else
-        $db.from(:splayd_jobs).where('id = ?', sj[:id]).delete
+        $db.from(:splayd_jobs).where(id: sj[:id]).delete
         #$db.do "DELETE FROM splayd_jobs WHERE id='#{sj['id']}'"
       end
       # it can't be new jobs in data['jobs'] that don't have already an
@@ -437,7 +435,7 @@ class Splayd
   def parse_loadavg s
     if s.strip != ""
     	l = s.split(" ")
-    	$db.from(:splayds).where('id = ?', @id).update(:load_1 => l[0], :load_5 => l[1], :load_15 => l[2])
+    	$db.from(:splayds).where(id: @id).update(:load_1 => l[0], :load_5 => l[1], :load_15 => l[2])
         #do "UPDATE splayds SET
     	#		load_1='#{l[0]}',
     	#		load_5='#{l[1]}',
@@ -446,7 +444,7 @@ class Splayd
     else
     	# NOTE should too be fixed in splayd
     	$log.warn("Splayd #{@id} report an empty loadavg. ")
-    	$db.from(:splayds).where('id = ?', @id).update(:load_1 => '10', :load_5 => '10', :load_15 => '10')
+    	$db.from(:splayds).where(id: @id).update(:load_1 => '10', :load_5 => '10', :load_15 => '10')
         #$db.do "UPDATE splayds SET
     	#		load_1='10',
     	#		load_5='10',
@@ -458,7 +456,7 @@ class Splayd
   # NOTE then corresponding entry may already have been deleted if the reply
   # comes after the job has finished his registration, but no problem.
   def s_sel_reply(job_id, port, reply_time)
-    $db.from(:splayd_selections).where('splayd_id = ? AND job_id = ?', @id, job_id).update(
+    $db.from(:splayd_selections).where(Sequel.&({splayd_id:@id},{job_id:job_id})).update(
       :replied => 'TRUE', :reply_time => reply_time, :port => port
     )
     #do "UPDATE splayd_selections SET

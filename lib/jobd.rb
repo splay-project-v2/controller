@@ -81,7 +81,7 @@ class Jobd
 	# Update job status (and status time)
 	def self.set_job_status(id, status, status_msg = "")
 		$log.info("Job #{id}: #{status} #{status_msg}")
-		$db.from(:jobs).where('id = ?', id).update(
+		$db.from(:jobs).where(id: id).update(
                   :status      => status,
                   :status_time => Time.now.to_i,
                   :status_msg  => status_msg
@@ -160,7 +160,7 @@ class Jobd
 	  list = {}
 	  list['ref'] = job[:ref]
 	  list['nodes'] = []
-	  topo_xml = $db.from(:jobs).where('ref = ?', job[:ref])[:topology]
+	  topo_xml = $db.from(:jobs).where(ref: job[:ref])[:topology]
           #select_one "SELECT topology FROM jobs WHERE ref='#{job['ref']}'"
           if topo_xml and topo_xml[0].to_s.length>0 then
   	    $log.info("Parsing topology: '#{topo_xml}' #{topo_xml.class} #{topo_xml.length}")
@@ -178,7 +178,7 @@ class Jobd
 	  		if c > max then break end
 	  		c += 1
 	  	end
-	  	res = $db.from(:splayds).where('id = ?', m_s[:splayd_id]).first
+	  	res = $db.from(:splayds).where(id: m_s[:splayd_id]).first
                   #select_one "SELECT ip FROM splayds WHERE id='#{m_s['splayd_id']}'"
 	  	el = {}
 	  	el['id'] =   m_s[:splayd_id]

@@ -33,7 +33,7 @@ class JobdTraceAlt < Jobd
   def self.status_local
     @@dlock_jr.get
     c_splayd = nil
-    $db.from(:jobs).where("scheduler = ? AND status='LOCAL'", @@scheduler).each do |job|
+    $db.from(:jobs).where(Sequel.&({scheduler:@@scheduler},{status:'LOCAL'})).each do |job|
       #select_all "SELECT * FROM jobs WHERE
       #scheduler='#{@@scheduler}' AND status='LOCAL'" do |job|
       # Splayds selection
@@ -62,7 +62,7 @@ class JobdTraceAlt < Jobd
 		if count >= nb_selected_splayds then break end
 	end
 
-	$db.from(:job_mandatory_splayds).where('job_id = ?', job[:id]).each do |mm|
+	$db.from(:job_mandatory_splayds).where(job_id: job[:id]).each do |mm|
 #        select_all "SELECT * FROM job_mandatory_splayds
 #			WHERE job_id='#{job['id']}'" do |mm|
 		splay_id = mm[:splayd_id]

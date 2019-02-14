@@ -58,7 +58,6 @@ end
 for i in (0...SplayControllerConfig::NumSplayd)
 	fork do
 		$db = DBUtils.get_new
-		$dbt = DBUtils.get_new
 		SplaydServer.new(SplayControllerConfig::SplaydPort + i).run.join
 	end
 end
@@ -92,13 +91,6 @@ end
 fork do
 	$db = DBUtils.get_new
 	Blacklistd.run.join
-end
-
-if SplayControllerConfig::AllowNativeLibs
-	fork do
-	  $db = DBUtils.get_new
-	  JobdGrid.run.join
-	end
 end
 
 fork do

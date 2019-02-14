@@ -132,16 +132,16 @@ def watch(job)
   	j[:status] != "RUNNING"
   
   	sleep(1)
-  	j = $db.from(:jobs).where('ref = ?', job[:ref]).first
+  	j = $db.from(:jobs).where(ref: job[:ref]).first
         #select_one "SELECT * FROM jobs WHERE ref='#{job['ref']}'"
   	if j[:status] != old_status
                 puts 'Job status in the DB:'
   		puts j[:status]
   		if j[:status] == "RUNNING"
-  		  $db.from(:splayd_selections).where("job_id = ? AND selected = 'TRUE'", j[:id]).each do |ms|
+  		  $db.from(:splayd_selections).where(Sequel.&({job_id: j['id']},{selected:'TRUE'})).each do |ms|
                     #select_all "SELECT * FROM splayd_selections WHERE job_id='#{j['id']}'
   		    #		AND selected='TRUE'" do |ms|
-  	            m = $db.from(:splayds).where('id = ?', ms[:splayd_id]).first
+  	            m = $db.from(:splayds).where(id: ms[:splayd_id]).first
                     #select_one "SELECT * FROM splayds WHERE id='#{ms['splayd_id']}'"
   	            if j[:network_nb_ports] > 0
   	            	puts "    #{m[:id]} #{m[:name]} #{m[:ip]} #{ms[:port]} - #{ms[:port] +

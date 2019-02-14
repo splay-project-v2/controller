@@ -37,8 +37,7 @@ class JobdStandard < Jobd
 	@@dlock_jr.get
 	c_splayd = nil
 	$db.run "SELECT * FROM jobs WHERE scheduler='#{get_scheduler}' AND status='LOCAL'" do |job| 
-	#select_all 
-		# Splayds selection
+	# Splayds selection
 	  c_splayd, occupation, nb_selected_splayds, new_job, do_next = status_local_common(job)
 	  # If this job cannot be submitted immediately, jump to the next one
 	  if do_next == true
@@ -59,7 +58,7 @@ class JobdStandard < Jobd
 		count += 1
 		if count >= nb_selected_splayds then break end
 	  end
-	  $db.from(:job_mandatory_splayds).where('job_id = ?', job[:id]).each do |mm|
+	  $db.from(:job_mandatory_splayds).where(job_id: job[:id]).each do |mm|
   #  select_all "SELECT * FROM job_mandatory_splayds
   # 		WHERE job_id='#{job['id']}'" do |mm|
 		splay_id = mm[:splayd_id]

@@ -62,13 +62,7 @@ class SplaydProtocol
 		@so.write msg
 		raise RegisterError, msg
 	end
-  
-  # 
-  def pre_auth
-  end
-  #
- 	def auth_update_lib
-  end
+	
 	# Initialize splayd connection, authenticate, session, ...
 	def auth
    	if @so.read != "KEY" then raise ProtocolError, "KEY" end
@@ -113,9 +107,6 @@ class SplaydProtocol
 			else
 				same = true
 			end
-
-      # Implemented only in JobdGrid as of now
-      auth_update_lib()
 
 			@so.write "OK"
                         if @splayd.row[:session]

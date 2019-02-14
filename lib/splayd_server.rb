@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'splayd_protocol'))
-require File.expand_path(File.join(File.dirname(__FILE__), 'splayd_grid_protocol'))
 
 class SplaydServer
 
@@ -54,12 +53,9 @@ class SplaydServer
 			loop do
 				so = server.accept
 				tmpSocket = LLenc.new(so)
-       	splaydProtocol = tmpSocket.read()
-        if splaydProtocol == "standard" then
-				  SplaydProtocol.new(so).run
-				elsif splaydProtocol == "grid" then
-				  SplaydGridProtocol.new(so).run
-				end
+				# For now only one Protocol => standard, grid was removed
+       			splaydProtocol = tmpSocket.read()
+				SplaydProtocol.new(so).run
 			end
 		rescue => e
 			$log.error(e.class.to_s + ": " + e.to_s + "\n" + e.backtrace.join("\n"))
