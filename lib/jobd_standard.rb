@@ -253,7 +253,7 @@ class JobdStandard < Jobd
 				set_job_status(job[:id], 'RUNNING')
 
 				# Create a symlink to the log dir
-				File.symlink("#{@@log_dir}/#{job[:id]}", "#{@@link_log_dir}/#{job[:ref]}.txt")
+				File.symlink("#{@@log_dir}/#{job[:id]}", "#{@@link_log_dir}/#{job[:id]}.txt")
 
 				send_start(job, "SELECT * FROM splayd_selections WHERE job_id='#{job[:id]}' AND selected='TRUE'")
 				
