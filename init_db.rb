@@ -24,7 +24,7 @@
 
 # GRANT ALL PRIVILEGES ON splay.* TO splay@localhost IDENTIFIED BY 'splay';
 
-require './lib/all'
+require File.expand_path(File.join(File.dirname(__FILE__), 'lib/all'))
 
 # Cleanup database in case of reuse
 def drop_db(db)

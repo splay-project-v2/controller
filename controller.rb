@@ -31,7 +31,8 @@
 # see how easily you would be able to run multiple splayd/jobs on multiple
 # computers.
 
-require './lib/all'
+require File.expand_path(File.join(File.dirname(__FILE__), 'lib/common'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'lib/all'))
 
 $log.level = Logger::INFO
 
@@ -43,10 +44,9 @@ puts "Splay Controller is licensed under GPL v3, see COPYING"
 puts
 
 Splayd.init
-$db.from(:locks).where('id = ?', '1').update(:job_reservation => '0')
+$db["UPDATE locks SET job_reservation='0' WHERE id ='1'"]
 
 $db.disconnect
-$dbt.disconnect
 
 for i in (0...SplayControllerConfig::NumLogd)
 	fork do
@@ -67,8 +67,6 @@ fork do
 	$db = DBUtils.get_new
 	JobdStandard.run.join
 end
-
-
 
 fork do
 	$db = DBUtils.get_new

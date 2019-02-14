@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -31,6 +31,6 @@ class LogObject
 		if $log
 			$log.add(@level, "#{@name}: #{methodname}(#{args})")
 		end
-		@o.send(methodname, *args, &block)
+		return @o.send(methodname, *args, &block)
 	end
 end

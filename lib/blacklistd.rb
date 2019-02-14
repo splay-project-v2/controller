@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -37,29 +37,30 @@ class Blacklistd
 					new_bl << SplayControllerConfig::PublicIP
 				end
 				$db["SELECT host FROM blacklist_hosts"].each do |row|
-					new_bl << row[0]
+					new_bl << row[:host]
 				end
 
-				if bl != new_bl
+				if bl != new_bl then
 					bl = new_bl
 
 					# If the splayd is UNAVAILABLE or RESET, it will needs to
 					# reconnect to be AVAILABLE and so, will already receive the
 					# latest blacklist.
-
-					$db[:splayds].where(status: 'AVAILABLE').each do |splayd|
-						action = $db[:actions].where(splayd_id: splayd[:id], command: 'BLACKLIST').first
+					$db["SELECT * FROM splayds WHERE status='AVAILABLE'"].each do |splayd|
+						action = $db["SELECT * FROM actions WHERE
+								splayd_id='#{splayd[:id]}' AND
+								command='BLACKLIST'"].first
 						if not action
-							$db.run("INSERT INTO actions SET
+							$db["INSERT INTO actions SET
 									splayd_id='#{splayd[:id]}',
 									command='BLACKLIST',
-									data='#{bl.to_json}'")
+									data='#{bl.to_json}'"]
 						else
-							$db.run("UPDATE actions SET
+							$db["UPDATE actions SET
 									data='#{bl.to_json}'
 									WHERE
 									splayd_id='#{splayd[:id]}' AND
-									command='BLACKLIST'")
+									command='BLACKLIST'"]
 						end
 					end
 				end

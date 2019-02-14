@@ -1,4 +1,5 @@
-require './lib/all'
+require File.expand_path(File.join(File.dirname(__FILE__), 'lib/all'))
+
 print("Create global lock in DB")
 db = DBUtils::get_new
 db.run("INSERT INTO locks SET

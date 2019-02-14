@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -27,7 +27,7 @@ class Localization
 
 	@@loc_db = nil
 	def self.get(ip)
-		unless @@loc_db
+		if not @@loc_db
 			@@loc_db = GeoIP.new("#{File.dirname(__FILE__)}/GeoLiteCity.dat")
 		end
 		return @@loc_db.city(ip) # GeoIP::Record.new(@@loc_db, ip)

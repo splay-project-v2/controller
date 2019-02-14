@@ -1,6 +1,6 @@
 require 'minitest/autorun'
-dir = File.dirname(__FILE__)
-require "#{dir}/../lib/utils"
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/utils'))
+
 
 class TestUtils < Minitest::Test
   def test_addslashes

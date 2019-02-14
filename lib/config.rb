@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -18,13 +18,13 @@
 ## 
 ## You should have received a copy of the GNU General Public License
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
-
+require File.expand_path(File.join(File.dirname(__FILE__), 'db_config'))
 
 class SplayControllerConfig
-	CTLVersion = 1.1
+	CTLVersion = 1.3
 
 	SQL_TYPE = DBConfig::SQL_TYPE
-	SQL_DB =  DBConfig::SQL_DB
+	SQL_DB   = DBConfig::SQL_DB
 	SQL_HOST = DBConfig::SQL_HOST
 	SQL_USER = DBConfig::SQL_USER
 	SQL_PASS = DBConfig::SQL_PASS
@@ -41,12 +41,12 @@ class SplayControllerConfig
 	NATGatewayIP = nil
 
 	LogdIP = nil # nil => controller's ip
-	LogMaxSize = 32 * 1024 # 32 ko of logs for each nodes.
+	LogMaxSize = 1024 * 1024 * 100 # 100 MB of logs for each nodes.
 	LogDir = "#{Dir.pwd}/logs"
 	# links/job_key.txt => logs/job_id
 	LinkLogDir = "#{Dir.pwd}/links"
 	LogdPort = 11100 # base port (first port if more than one splayd)
-
+  	UseSplaydTimestamps = true # use the timestamps on the splayds, adjusted by the controller
 	SplaydPort = 11000 # base port (first port if more than one splayd)
 
 	PublicIP = nil # To set ourself in the blacklist
@@ -69,5 +69,8 @@ class SplayControllerConfig
 
 	# Jobd
 	RegisterTimeout = 30
+	MaxQueueTimeout = 3600
 	JobPollTime = 1
+	# Allow native lib/jobs to be submitted
+	AllowNativeLibs = false 
 end

@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -32,19 +32,19 @@ class Statusd
 		begin
 			$log.info(">>> Splay Controller Status Daemon")
 			while sleep(@@status_interval)
-				# We add status action for splayds where some jobs are running
+				# We add status action for splayds where some jobs are running OR waiting
 				$db["SELECT DISTINCT splayd_id FROM splayd_jobs
-						WHERE status='RUNNING'"].each do |m_s|
+						WHERE status='RUNNING' OR status='WAITING'"].each do |m_s|
 
 					# If we have not already a pending command.
 					action = $db["SELECT * FROM actions WHERE
 							splayd_id='#{m_s[:splayd_id]}' AND
-							command='STATUS'"].first
+							command='STATUS'"]
 
-					unless action
-						$db.run("INSERT INTO actions SET
+					if not action
+						$db["INSERT INTO actions SET
 								splayd_id='#{m_s[:splayd_id]}',
-								command='STATUS'")
+								command='STATUS'"]
 					end
 				end
 			end

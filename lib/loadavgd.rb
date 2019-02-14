@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -32,7 +32,9 @@ class Loadavgd
 			$log.info(">>> Splay Controller Loadavg Daemon")
 			while sleep(@@loadavg_interval)
 				$db["SELECT id FROM splayds WHERE status='AVAILABLE'"].each do |splayd|
-					$db.run("INSERT INTO actions SET splayd_id='#{splayd[:id]}', command='LOADAVG'")
+					$db["INSERT INTO actions SET
+							splayd_id='#{splayd[:id]}',
+							command='LOADAVG'"]
 				end
 			end
 		rescue => e

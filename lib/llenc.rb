@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -42,7 +42,7 @@ class LLenc
 	end
 
 	def peeraddr
-		@socket.peeraddr
+		return @socket.peeraddr
 	end
 
 	def _log msg
@@ -51,18 +51,18 @@ class LLenc
 		end
 	end
 
-	def write datas
-		_log ">>> #{datas.length.to_s} - #{datas.bytesize()}B : #{datas}"
-		# datas.bytesize is a way to tavoid bug when there are no standard char
+	def write(datas)
+		_log ">>> #{datas}"
 		Timeout::timeout(@write_timeout, StandardError) do
-			@socket.write(datas.bytesize.to_s + "\n" + datas)
+		  if datas
+		    @socket.write(datas.length.to_s + "\n" + datas)
+                  end
 		end
 	end
 
 	def read(max = nil)
 
 		Timeout::timeout(@read_timeout, StandardError) do
-
 			length = @socket.readline.to_i
 			if max and length > max
 				raise LLencError, "data too long (#{dl} > #{max})"

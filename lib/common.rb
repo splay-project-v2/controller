@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -19,6 +19,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
 
+# Use by local command
 
 dir = File.dirname(__FILE__)
 
@@ -26,11 +27,11 @@ require 'logger' # Logger::Error
 $log = Logger.new(STDERR)
 #$log.level = Logger::DEBUG
 $log.level = Logger::ERROR
-$log.datetime_format = "%H:%M:%S "
+$log.datetime_format = "%Y-%m-%d %H:%M:%S "
 
 $bench = Logger.new(STDERR)
 $bench.level = Logger::DEBUG
-$bench.datetime_format = "%H:%M:%S "
+$bench.datetime_format = "%Y-%m-%d %H:%M:%S "
 
 require 'socket' # SocketError and SystemCallError (Errno::*)
 require 'timeout' # Timeout::Error
@@ -38,29 +39,28 @@ require 'openssl' # OpenSSL::OpenSSLError
 require 'thread' # ThreadError
 require 'fileutils'
 require 'resolv'
-require 'json'
 
-require "#{dir}/db_config"
-require "#{dir}/config"
-require "#{dir}/log_object"
-require "#{dir}/dbutils"
+require File.expand_path(File.join(dir, 'db_config'))
+require File.expand_path(File.join(dir, 'config'))
+require File.expand_path(File.join(dir, 'log_object'))
+require File.expand_path(File.join(dir, 'dbutils'))
 
-#require "#{dir}/json" TODO Might be removed, as we have the gem
-require "#{dir}/llenc"
-require "#{dir}/utils"
-require "#{dir}/distributed_lock"
+require "json" #gem install json
+require File.expand_path(File.join(dir, 'llenc'))
+require File.expand_path(File.join(dir, 'utils'))
+require File.expand_path(File.join(dir, 'distributed_lock'))
 
 if SplayControllerConfig::Localize
-	require "#{dir}/localization"
+  require File.expand_path(File.join(dir, 'localization'))
 end
 
-$db = DBUtils.get_new
+$db = DBUtils.get_new_mysql_sequel
 
 BasicSocket.do_not_reverse_lookup = true
 $DEBUG = false
 $VERBOSE = false
 OpenSSL::debug = false
 
-unless SplayControllerConfig::PublicIP
+if not SplayControllerConfig::PublicIP
 	$log.warn("You must set your public ip in production mode.")
 end

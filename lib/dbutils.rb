@@ -40,4 +40,8 @@ class DBUtils
 
 		return db
 	end
+
+	def self.get_new_mysql_sequel
+		return self.get_new()
+	end
 end

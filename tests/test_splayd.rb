@@ -1,6 +1,6 @@
 require "minitest/autorun"
-dir = File.dirname(__FILE__)
-require "#{dir}/../lib/all"
+
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/all'))
 
 require 'logger' # Logger::Error
 

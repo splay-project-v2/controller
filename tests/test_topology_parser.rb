@@ -1,7 +1,7 @@
 require "minitest/autorun"
 
-dir = File.dirname(__FILE__)
-require "#{dir}/../lib/topology_parser"
+require File.expand_path(File.join(File.dirname(__FILE__), '../lib/topology_parser'))
+
 
 require 'json' #gems install json
 

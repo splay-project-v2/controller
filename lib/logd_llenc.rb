@@ -1,4 +1,4 @@
-## Splay Controller ### v1.1 ###
+## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
 ## 
@@ -31,7 +31,7 @@ class LogdServer
 	end
 
 	def run
-		Thread.new do
+		return Thread.new() do
 			main
 		end
 	end
@@ -40,8 +40,8 @@ class LogdServer
 		begin
 			$log.info(">>> Splay Controller Log Daemon (port: #{@port})")
 
-			unless File.exists? @@log_dir
-				unless FileUtils::mkdir @@log_dir
+			if not File.exists? @@log_dir
+				if not FileUtils::mkdir @@log_dir
 					$log.warn("Cannot create log dir: #{@@log_dir}")
 				end
 			end
@@ -65,16 +65,15 @@ class LogdServer
 				# check)
 
 				# TODO make a static function in Splayd.
-				splayd = $db["SELECT id FROM splayds WHERE
+				splayd = $db.select_one "SELECT id FROM splayds WHERE
 						(status='AVAILABLE' OR status='UNAVAILABLE') AND
-						ip='#{ip}'"].first
+						ip='#{ip}'"
 
 				if splayd or (@@nat_gateway_ip and ip == @@nat_gateway_ip)
 					Logd.new(socket).run
 				else
 					$log.info("Unknown IP (#{ip}) trying to log...")
-					begin socket.close; rescue; # ignored
-					end
+					begin socket.close; rescue; end
 				end
 			end
 		rescue => e
@@ -110,17 +109,17 @@ class Logd
 				splayd_session = ll_so.read
 
 				if @@nat_gateway_ip and ip == @@nat_gateway_ip
-					job = $db["SELECT
+					job = $db.select_one "SELECT
 							jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
 							jobs.status='RUNNING' AND
 							splayds.session='#{splayd_session}' AND
 							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id"].first
+							splayd_selections.splayd_id=splayds.id"
 				else
 					# We verify that the job exists and runs on a splayd that have this IP.
-					job = $db.do("SELECT
+					job = $db.select_one "SELECT
 							jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
@@ -128,12 +127,12 @@ class Logd
 							splayds.ip='#{ip}' AND
 							splayds.session='#{splayd_session}' AND
 							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id").first
+							splayd_selections.splayd_id=splayds.id"
 				end
 
 				if job
 					ll_so.set_timeout(24 * 3600)
-					fname = "#{@@log_dir}/#{job[:id]}"
+					fname = "#{@@log_dir}/#{job['id']}"
 					count = 0
 					begin
 #             file = File.open(fname, File::WRONLY|File::APPEND|File::CREAT, 0666) 
@@ -163,8 +162,8 @@ class Logd
 
 							t = Time.now
 							ms = (t.to_f - t.to_i).to_s[1,3]
-							pfix = "#{t.strftime("%H:%M:%S")}#{ms} " +
-									"(#{job[:splayd_id]}) "
+							pfix = "#{t.strftime("%Y-%m-%d %H:%M:%S")}#{ms} " +
+									"(#{job['splayd_id']}) "
 
 							count = count + msg.length
 							file.flock File::LOCK_EX # synchro between processes
@@ -173,8 +172,8 @@ class Logd
 						end
 						t = Time.now
 						ms = (t.to_f - t.to_i).to_s[1,3]
-						pfix = "#{t.strftime("%H:%M:%S")}#{ms} " +
-								"(#{job[:splayd_id]}) "
+						pfix = "#{t.strftime("%Y-%m-%d %H:%M:%S")}#{ms} " +
+								"(#{job['splayd_id']}) "
 
 						file.flock File::LOCK_EX # synchro between processes
 						file.puts "#{pfix} end_log (connection lost/closed/max_size)"
@@ -183,7 +182,6 @@ class Logd
 						begin
 							file.close
 						rescue
-							# ignored
 						end
 					end
 				else
@@ -195,7 +193,6 @@ class Logd
 				begin
 					@so.close
 				rescue
-					# ignored
 				end
 			end
 		end
