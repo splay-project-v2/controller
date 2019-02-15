@@ -3,6 +3,8 @@ require "minitest/autorun" #not required if done at the top of each test class, 
 dir = File.dirname(__FILE__)
 require File.expand_path(File.join(dir, '../lib/all'))
 
+require File.expand_path(File.join(dir, '../lib/common'))
+
 $log.level = Logger::ERROR
 
 # basic unit tests:

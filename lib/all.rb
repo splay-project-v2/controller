@@ -19,10 +19,9 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
 
-
 dir = File.dirname(__FILE__)
 
-#require File.expand_path(File.join(dir, 'common'))
+# require File.expand_path(File.join(dir, 'common'))
 
 require File.expand_path(File.join(dir, 'dbutils'))
 
@@ -36,5 +35,3 @@ require File.expand_path(File.join(dir, 'unseend'))
 require File.expand_path(File.join(dir, 'statusd'))
 require File.expand_path(File.join(dir, 'blacklistd'))
 require File.expand_path(File.join(dir, 'loadavgd'))
-
-

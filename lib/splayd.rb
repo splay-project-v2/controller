@@ -30,7 +30,7 @@ class Splayd
   
   def self.init
     # $db.from(:splayds).where("status = 'AVAILABLE' OR status = 'PREAVAILABLE'").update(:status => 'UNAVAILABLE')
-    $db.from(:splayds).where{Sequel.|((status = 'AVAILABLE'), (status = 'PREAVAILABLE'))}.update(:status => 'UNAVAILABLE')
+    $db.from(:splayds).where(status: ['AVAILABLE','PREAVAILABLE']).update(:status => 'UNAVAILABLE')
     Splayd.reset_actions
     Splayd.reset_unseen
   end
@@ -152,10 +152,7 @@ class Splayd
 
   # Check that this IP is not used by another splayd.
   def ip_check ip
-    query = $db.run "SELECT * FROM splayds WHERE
-      #ip='#{ip}' AND
-      #`key`!='#{@row.get(:key)}' AND
-      #(status='AVAILABLE' OR status='UNAVAILABLE' OR status='PREAVAILABLE')"
+    query = $db.run "SELECT * FROM splayds WHERE ip='#{ip}' AND `key`!='#{@row.get(:key)}' AND (status='AVAILABLE' OR status='UNAVAILABLE' OR status='PREAVAILABLE')"
     if ip == "127.0.0.1" or ip=="::ffff:127.0.0.1" or not query
       true
     else
@@ -170,7 +167,7 @@ class Splayd
     else
     	infos['status']['endianness'] = "big"
     end
-    # We don't update ip, key, session and localization infomrations here
+    # We don't update ip, key, session and localization informations here
     $db.from(:splayds).where(id: @id).update(
       :name                       =>  addslashes(infos['settings']['name']),
       :version                    =>  addslashes(infos['status']['version']),
@@ -193,28 +190,6 @@ class Splayd
       :network_send_speed         =>  addslashes(infos['settings']['network']['send_speed']),
       :network_receive_speed      =>  addslashes(infos['settings']['network']['receive_speed'])
     )
-    #$db.do "UPDATE splayds SET
-    #name='#{addslashes(infos['settings']['name'])}',
-    #version='#{addslashes(infos['status']['version'])}',
-    #lua_version='#{addslashes(infos['status']['lua_version'])}',
-    #bits='#{addslashes(infos['status']['bits'])}',
-    #endianness='#{addslashes(infos['status']['endianness'])}',
-    #os='#{addslashes(infos['status']['os'])}',
-    #full_os='#{addslashes(infos['status']['full_os'])}',
-    #architecture='#{addslashes(infos['status']['architecture'])}',
-    #start_time='#{addslashes((Time.now.to_f - infos['status']['uptime'].to_f).to_i)}',
-    #max_number='#{addslashes(infos['settings']['job']['max_number'])}',
-    #max_mem='#{addslashes(infos['settings']['job']['max_mem'])}',
-    #disk_max_size='#{addslashes(infos['settings']['job']['disk']['max_size'])}',
-    #disk_max_files='#{addslashes(infos['settings']['job']['disk']['max_files'])}',
-    #disk_max_file_descriptors='#{addslashes(infos['settings']['job']['disk']['max_file_descriptors'])}',
-    #network_max_send='#{addslashes(infos['settings']['job']['network']['max_send'])}',
-    #network_max_receive='#{addslashes(infos['settings']['job']['network']['max_receive'])}',
-    #network_max_sockets='#{addslashes(infos['settings']['job']['network']['max_sockets'])}',
-    #network_max_ports='#{addslashes(infos['settings']['job']['network']['max_ports'])}',
-    #network_send_speed='#{addslashes(infos['settings']['network']['send_speed'])}',
-    #network_receive_speed='#{addslashes(infos['settings']['network']['receive_speed'])}'
-    #WHERE id='#{@id}'"
     parse_loadavg(infos['status']['loadavg'])
   end
 
@@ -243,13 +218,6 @@ class Splayd
           :latitude =>loc.latitude,
           :longitude=>loc.longitude
         )
-        #do "UPDATE splayds SET
-        #hostname='#{hostname}',
-        #country='#{loc.country_code2.downcase}',
-        #city='#{loc.city_name}',
-        #latitude='#{loc.latitude}',
-        #longitude='#{loc.longitude}'
-        #WHERE id='#{@id}'"
         rescue => e
           puts e
     	  $log.error("Impossible localization of #{@row[:ip]}")
@@ -259,12 +227,10 @@ class Splayd
 
   def remove_action action
     $db.from(:actions).where(id: action[:id]).delete
-    #.do "DELETE FROM actions WHERE id='#{action['id']}'"
   end
 
   def update(field, value)
     $db.from(:splayds).where(id: @id).update(field.to_sym => value)
-    #do "UPDATE splayds SET #{field}='#{value}' WHERE id='#{@id[:id]}'"
     @row[field.to_sym] = value
   end
 
@@ -315,19 +281,15 @@ class Splayd
   end
 
   def available
+    # do "UPDATE splayds SET status='AVAILABLE' WHERE id='#{@id[:id]}'"
   	$db.from(:splayds).where(id: @id).update(:status => 'AVAILABLE')
-        #do "UPDATE splayds SET status='AVAILABLE' WHERE id='#{@id[:id]}'"
+        
   	$db.from(:splayd_availabilities).insert(
             :splayd_id=> @id,
   	    :ip       => @row[:ip],
   	    :status   => 'AVAILABLE',
   	    :time     => Time.now.to_i
         )
-        #do "INSERT INTO splayd_availabilities SET
-        #  		   splayd_id='#{@id[:id]}',
-        #  		   ip='#{@row['ip']}',
-        #  		   status='AVAILABLE',
-        #  		   time='#{Time.now.to_i}'"
   	last_contact
   	restore_actions
   end
@@ -352,14 +314,13 @@ class Splayd
         # add the FREE-REGISTER commands at the top of the
         # actions.
         job = $db.from(:jobs).where(id: action[:job_id]).first
-        #.select_one "SELECT ref FROM jobs WHERE id='#{action['job_id']}'"
         $db.from(:actions).where(id: action[:id]).delete
-        #do "DELETE FROM actions WHERE id='#{action['id']}'"
+
         Splayd.add_action(action[:splayd_id], action[:job_id], 'FREE', job[:ref])
         Splayd.add_action(action[:splayd_id], action[:job_id], 'REGISTER', addslashes(job[:code]))
       else
         $db.from(:actions).where(id: action[:id]).update(:status => 'WAITING')
-        #do "UPDATE actions SET status='WAITING' WHERE id='#{action['id']}'"
+       
       end
     end
   end
@@ -374,9 +335,6 @@ class Splayd
       end
       if action[:status] == 'WAITING'
         $db.from(:actions).where(id: action[:id]).update(:status => 'SENDING')
-          #do "UPDATE actions SET
-        #		status='SENDING'
-        #		WHERE id='#{action['id']}'"
         resu = action
         break
       end
@@ -404,24 +362,17 @@ class Splayd
     data = JSON.parse data
     puts "Data content: #{data}"
     $db.from(:splayd_jobs).where(Sequel.&({splayd_id:@id}, {status: 'RESERVED'})).each do |sj|
-      #  select_all "SELECT * FROM splayd_jobs WHERE
-      #  		splayd_id='#{@id}' AND
-      #  		status!='RESERVED'" do |sj|
       job = $db.from(:jobs).where(id: sj[:job_id]).first
       # There is no difference in Lua between Hash and Array, so when it's
       # empty (an Hash), we encoded it like an empy Array.
       if data['jobs'].class == Hash and data['jobs'][job[:ref]]
       	if data['jobs'][job[:ref]]['status'] == "waiting"
             $db.from(:splayd_jobs).where(id: sj[:id]).update(:status => 'WAITING')
-            #  do "UPDATE splayd_jobs SET status='WAITING'
-            #		WHERE id='#{sj['id']}'"
       	end
       	# NOTE normally no needed because already set to RUNNING when
       	# we send the START command.
       	if data['jobs'][job[:ref]]['status'] == "running"
             $db.from(:splayd_jobs).where(id: sj[:id]).update(:status => 'RUNNING')
-            #do "UPDATE splayd_jobs SET status='RUNNING'
-            #		WHERE id='#{sj['id']}'"
       	end
       else
         $db.from(:splayd_jobs).where(id: sj[:id]).delete
@@ -435,21 +386,11 @@ class Splayd
   def parse_loadavg s
     if s.strip != ""
     	l = s.split(" ")
-    	$db.from(:splayds).where(id: @id).update(:load_1 => l[0], :load_5 => l[1], :load_15 => l[2])
-        #do "UPDATE splayds SET
-    	#		load_1='#{l[0]}',
-    	#		load_5='#{l[1]}',
-    	#		load_15='#{l[2]}'
-    	#		WHERE id='#{@id}'"
+      $db.from(:splayds).where(id: @id).update(:load_1 => l[0], :load_5 => l[1], :load_15 => l[2])
     else
     	# NOTE should too be fixed in splayd
     	$log.warn("Splayd #{@id} report an empty loadavg. ")
     	$db.from(:splayds).where(id: @id).update(:load_1 => '10', :load_5 => '10', :load_15 => '10')
-        #$db.do "UPDATE splayds SET
-    	#		load_1='10',
-    	#		load_5='10',
-    	#		load_15='10'
-    	#		WHERE id='#{@id}'"
     end
   end
   
@@ -459,11 +400,6 @@ class Splayd
     $db.from(:splayd_selections).where(Sequel.&({splayd_id:@id},{job_id:job_id})).update(
       :replied => 'TRUE', :reply_time => reply_time, :port => port
     )
-    #do "UPDATE splayd_selections SET
-    #  			replied='TRUE',
-    #  			reply_time='#{reply_time}',
-    #  			port='#{port}'
-    #  			WHERE splayd_id='#{@id}' AND job_id='#{job_id}'"
   end
 
 end

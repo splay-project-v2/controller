@@ -1,24 +1,23 @@
 ## Splay Controller ### v1.3 ###
 ## Copyright 2006-2011
 ## http://www.splay-project.org
-## 
-## 
-## 
+##
+##
+##
 ## This file is part of Splay.
-## 
-## Splayd is free software: you can redistribute it and/or modify 
-## it under the terms of the GNU General Public License as published 
-## by the Free Software Foundation, either version 3 of the License, 
+##
+## Splayd is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation, either version 3 of the License,
 ## or (at your option) any later version.
-## 
-## Splayd is distributed in the hope that it will be useful,but 
+##
+## Splayd is distributed in the hope that it will be useful,but
 ## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ## See the GNU General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU General Public License
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
-
 
 # NOTE
 # why socket.read can return a nil element and do not raise an exception when
@@ -30,50 +29,43 @@
 class LLencError < SocketError; end
 
 class LLenc
+  def initialize(socket)
+    @socket = socket
+    @read_timeout = @write_timeout = 24 * 3600
+    @ip = @socket.peeraddr[3]
+  end
 
-	def initialize socket
-		@socket = socket
-		@read_timeout = @write_timeout = 24 * 3600
-		@ip = @socket.peeraddr[3]
-	end
+  def set_timeout(time)
+    @read_timeout = @write_timeout = time
+  end
 
-	def set_timeout time
-		@read_timeout = @write_timeout = time
-	end
+  def peeraddr
+    @socket.peeraddr
+  end
 
-	def peeraddr
-		return @socket.peeraddr
-	end
+  def _log(msg)
+    $log.debug "LLenc (#{@ip}): #{msg}" if $log
+  end
 
-	def _log msg
-		if $log
-			$log.debug "LLenc (#{@ip}): #{msg}"
-		end
-	end
+  def write(datas)
+    _log ">>> #{datas}"
+    Timeout.timeout(@write_timeout, StandardError) do
+      @socket.write(datas.length.to_s + "\n" + datas) if datas
+    end
+  end
 
-	def write(datas)
-		_log ">>> #{datas}"
-		Timeout::timeout(@write_timeout, StandardError) do
-		  if datas
-		    @socket.write(datas.length.to_s + "\n" + datas)
-                  end
-		end
-	end
+  def read(max = nil)
+    Timeout.timeout(@read_timeout, StandardError) do
+      length = @socket.readline.to_i
+      if max && (length > max)
+        raise LLencError, "data too long (#{dl} > #{max})"
+      end
 
-	def read(max = nil)
+      t = @socket.read(length)
+      raise LLencError, 'data read error' if t.nil?
 
-		Timeout::timeout(@read_timeout, StandardError) do
-			length = @socket.readline.to_i
-			if max and length > max
-				raise LLencError, "data too long (#{dl} > #{max})"
-			end
-
-			t = @socket.read(length)
-			if t.nil?
-				raise LLencError, "data read error"
-			end
-			_log "<<< #{t}"
-			return t
-		end
-	end
+      _log "<<< #{t}"
+      return t
+    end
+  end
 end
