@@ -277,7 +277,7 @@ class Splayd
 
   def action_failure
     $db.run "UPDATE actions SET status='FAILURE'
-    		WHERE status='SENDING' AND splayd_id='#{@id[:id]}'"
+    		WHERE status='SENDING' AND splayd_id='#{@id}'"
   end
 
   def available
@@ -304,8 +304,7 @@ class Splayd
 
   # Restore actions in failure state.
   def restore_actions
-    $log.info($db)
-    $db.run "SELECT * FROM actions WHERE status='FAILURE' AND splayd_id='#{@id}'" do |action|
+    $db["SELECT * FROM actions WHERE status='FAILURE' AND splayd_id='#{@id}'"].each do |action|
       if action[:command] == 'REGISTER'
         # We should put the FREE-REGISTER at the same place
         # where REGISTER was. But, no other register action concerning

@@ -12,5 +12,5 @@ gem 'openssl', '~>2.1.2'
 
 gem 'algorithms', '~>0.6.1'
 gem 'nokogiri', '~>1.10.1'
-gem 'net-ping', '~>2.0.5'
+gem 'net-ping', '~>1.7.8'
 gem 'geoip', '~>1.6.4' # USE by Localization Class 

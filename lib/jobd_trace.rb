@@ -66,7 +66,9 @@
 
 class JobdTrace < Jobd
   @@scheduler = 'trace'
-
+  def self.get_scheduler
+    @@scheduler
+  end
   # We are just restarted, no threads to apply the trace, we need to kill
   # each running jobs
   def self.init

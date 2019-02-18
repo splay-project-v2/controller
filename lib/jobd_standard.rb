@@ -27,15 +27,17 @@
 
 class JobdStandard < Jobd
   @@scheduler = 'standard'
+
   def self.get_scheduler
-    'standard'
+    @@scheduler
   end
 
   # LOCAL => REGISTERING|NO RESSOURCES|QUEUED
   def self.status_local
     @@dlock_jr.get
     c_splayd = nil
-    $db.run "SELECT * FROM jobs WHERE scheduler='#{get_scheduler}' AND status='LOCAL'" do |job|
+    $db.from(:jobs).where(scheduler: self.get_scheduler(), status: 'LOCAL').each do |job|
+      $log.info('New job discovered')
       # Splayds selection
       c_splayd, occupation, nb_selected_splayds, new_job, do_next = status_local_common(job)
       # If this job cannot be submitted immediately, jump to the next one

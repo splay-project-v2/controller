@@ -187,7 +187,7 @@ class Graph
   # Assume that 'dijkstra src' has been already invoked
   def path(_src, dest)
     p = []
-    # path = path0(dest, p)
+    path = path0(dest, p)
     p << dest
     p
   end

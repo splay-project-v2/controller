@@ -1,4 +1,4 @@
-require "minitest/autorun" #not required if done at the top of each test class, here to be sure.
+require 'minitest/autorun' # not required if done at the top of each test class, here to be sure.
 
 dir = File.dirname(__FILE__)
 require File.expand_path(File.join(dir, '../lib/all'))
@@ -16,6 +16,3 @@ require File.expand_path(File.join(dir, 'test_utils'))
 # Splaynet tests:
 require File.expand_path(File.join(dir, 'test_topology_parser'))
 require File.expand_path(File.join(dir, 'test_min_heap'))
-
-
-

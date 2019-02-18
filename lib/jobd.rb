@@ -36,12 +36,12 @@ class Jobd
   @@log_dir = SplayControllerConfig::LogDir
 
   def self.run
-    $log.info('Doing main() at Jobd')
+    $log.info("Doing main() at Jobd : #{get_scheduler}")
     Thread.new { main }
   end
 
   def self.main
-    $log.info('>>> Splay Controller Job Daemon')
+    $log.info(">>> Splay Controller Job Daemon (#{get_scheduler})")
     while sleep(@@poll_time)
       status_local
       status_registering
@@ -53,6 +53,8 @@ class Jobd
   rescue StandardError => e
     $log.fatal(e.class.to_s + ': ' + e.to_s + "\n" + e.backtrace.join("\n"))
   end
+
+  def get_scheduler; raise "Method Not Defined" end
 
   def self.init; end
 

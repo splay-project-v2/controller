@@ -145,7 +145,7 @@ class Logd
 
         if @@nat_gateway_ip && (ip == @@nat_gateway_ip)
           job = $db["SELECT
-							jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
+							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
 							jobs.status='RUNNING' AND
@@ -155,7 +155,7 @@ class Logd
         else
           # We verify that the job exists and runs on a splayd that have this IP.
           job = $db["SELECT
-							jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
+							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
 							jobs.status='RUNNING' AND
@@ -168,9 +168,10 @@ class Logd
         jobd_localtime = @so.gets.chop
 
         # Ping2::TCP.service_check = true #prevents false negatives, the host is UP for sure.
-        p1 = Net::Ping::TCP.new(host: ip)
+        # BUG : TODO : find a way to approximate rtt
+        # p1 = Net::Ping::TCP.new(host: ip, port: 7)
         t0 = Time.now
-        p1.ping # do the ping
+        # p1.ping # do the ping
         rtt = (Time.now - t0) / 2
 
         ctrl_time = Time.now
@@ -180,16 +181,16 @@ class Logd
         $log.info("Splayd (#{job[:splayd_id]}) remote-time before job: #{jt.strftime('%H:%M:%S')}.#{jt.usec} DIFF: #{difftime} RTT: #{rtt}")
 
         adjust_ts(jt, difftime, rtt)
-        $log.debug("Logd retrieved job ref #{job_ref}")
+        
         if job
           # TODO: replace
           # @so.set_timeout(24 * 3600)
-          fname = "#{@@log_dir}/#{job[:id]}"
+          fname = "#{@@log_dir}/#{job_ref}"
           count = 0
           last_ts = nil
+          $log.info("Logd retrieved job ref #{job_ref} into #{fname}")
           begin
-            #             file = File.open(fname, File::WRONLY|File::APPEND|File::CREAT, 0666)
-            file = File.new(fname, File::WRONLY | File::APPEND | File::CREAT, 0o777)
+            file = File.new(fname, File::WRONLY | File::APPEND | File::CREAT, 0777)
             # http://ruby-doc.org/core-1.8.7/IO.html#method-i-sync
             # This affects future operations and causes output to be written without block buffering.
             file.sync = true
@@ -244,10 +245,7 @@ class Logd
             end
             file.flock File::LOCK_UN
           ensure
-            begin
-              file.close
-            rescue StandardError
-            end
+            file.close unless file.nil?
           end
         else
           $log.warn("The job #{job_ref} doesn't exists on #{ip} (or just killed)")
@@ -255,10 +253,7 @@ class Logd
       rescue StandardError => e
         $log.error(e.class.to_s + ': ' + e.to_s + "\n" + e.backtrace.join("\n"))
       ensure
-        begin
-          @so.close
-        rescue StandardError
-        end
+        @so.close unless @so.nil?
       end
     end
   end

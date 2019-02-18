@@ -28,6 +28,9 @@
 class JobdTraceAlt < Jobd
   @@scheduler = 'tracealt'
   # LOCAL => REGISTERING|NO RESSOURCES|QUEUED
+  def self.get_scheduler
+    @@scheduler
+  end
 
   def self.status_local
     @@dlock_jr.get
