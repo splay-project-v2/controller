@@ -105,7 +105,6 @@ class Logd
   end
 
   def prefix(job, ts = nil)
-    # t = Time.now
     ts = Time.now if ts.nil?
     pfix = ts.strftime('%Y-%m-%d %H:%M:%S') << ".#{ts.usec} " << "(#{job[:splayd_id]}) "
     pfix
@@ -117,7 +116,7 @@ class Logd
       msg = 'Error receiving message'
       return ts, msg
     end
-    $log.debug("Parsing raw message: #{raw_msg}")
+    # $log.debug("Parsing raw message: #{raw_msg}")
     toks = raw_msg.split(' ')
     ts = Time.at(toks[0].to_i, toks[1].to_i)
     msg = raw_msg[toks[0].size + toks[1].size + 1, raw_msg.size]

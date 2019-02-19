@@ -36,8 +36,4 @@ class DBUtils
 
     db
   end
-
-  def self.get_new_mysql_sequel
-    get_new
-  end
 end

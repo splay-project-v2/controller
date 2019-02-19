@@ -34,18 +34,20 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'lib/common'))
 require File.expand_path(File.join(File.dirname(__FILE__), 'lib/all'))
 
+# Redefine the log level (by default ERROR)
 $log.level = Logger::DEBUG
 
-puts
 puts ">>> Splayd Controller #{SplayControllerConfig::CTLVersion} <<<"
 puts
 puts 'http://www.splay-project.org'
 puts 'Splay Controller is licensed under GPL v3, see COPYING'
 puts
 
-Splayd.init
+# Reset Distributed Locks
+$db = DBUtils.get_new
 $db["UPDATE locks SET job_reservation='0' WHERE id ='1'"]
-
+# Init used the $db
+Splayd.init
 $db.disconnect
 
 (0...SplayControllerConfig::NumLogd).each do |i|
@@ -93,10 +95,10 @@ fork do
   Blacklistd.run.join
 end
 
-# fork do
-  # $db = DBUtils.get_new
-  # JobdTraceAlt.run.join
-# end
+fork do
+  $db = DBUtils.get_new
+  JobdTraceAlt.run.join
+end
 
 # end only on interruption
 loop { sleep 1000 }

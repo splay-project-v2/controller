@@ -20,31 +20,24 @@
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
 
 # Use by local command
-
-dir = File.dirname(__FILE__)
-
 require 'logger' # Logger::Error
 $log = Logger.new(STDERR)
-# $log.level = Logger::DEBUG
-$log.level = Logger::ERROR
 $log.datetime_format = '%Y-%m-%d %H:%M:%S '
-
-$bench = Logger.new(STDERR)
-$bench.level = Logger::DEBUG
-$bench.datetime_format = '%Y-%m-%d %H:%M:%S '
+$log.level = Logger::ERROR
 
 require 'socket' # SocketError and SystemCallError (Errno::*)
 require 'timeout' # Timeout::Error
 require 'openssl' # OpenSSL::OpenSSLError
 require 'fileutils'
 require 'resolv'
+require 'json' # gem install json
+
+dir = File.dirname(__FILE__)
 
 require File.expand_path(File.join(dir, 'db_config'))
 require File.expand_path(File.join(dir, 'config'))
 require File.expand_path(File.join(dir, 'log_object'))
 require File.expand_path(File.join(dir, 'dbutils'))
-
-require 'json' # gem install json
 require File.expand_path(File.join(dir, 'llenc'))
 require File.expand_path(File.join(dir, 'utils'))
 require File.expand_path(File.join(dir, 'distributed_lock'))
@@ -53,11 +46,8 @@ if SplayControllerConfig::Localize
   require File.expand_path(File.join(dir, 'localization'))
 end
 
-$db = DBUtils.get_new_mysql_sequel
 
 BasicSocket.do_not_reverse_lookup = true
-$DEBUG = false
-$VERBOSE = false
 OpenSSL.debug = false
 
 unless SplayControllerConfig::PublicIP

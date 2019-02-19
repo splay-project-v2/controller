@@ -39,7 +39,7 @@ end
 end
 
   def self.get(name)
-    @@db ||= DBUtils.get_new_mysql_sequel
+    @@db ||= DBUtils.get_new
     ok = false
     until ok
       @@mutex.synchronize do
