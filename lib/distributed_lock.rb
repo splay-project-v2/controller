@@ -32,11 +32,11 @@ class DistributedLock
 
   def get
     DistributedLock.get(@name)
-end
+  end
 
   def release
     DistributedLock.release(@name)
-end
+  end
 
   def self.get(name)
     @@db ||= DBUtils.get_new
@@ -68,10 +68,7 @@ end
 
   def self.release(name)
     @@mutex.synchronize do
-      # @@db.do "BEGIN"
       @@db.from(:locks).where(id: 1).update(name.to_sym => '0')
-      # "UPDATE locks SET #{name}='0' WHERE id ='1'"
-      # @@db.do "COMMIT"
     end
   end
 end

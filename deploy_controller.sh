@@ -24,8 +24,8 @@ set -o nounset                              # Treat unset variables as an error
 # ruby init_users.rb
 
 # Run suite of tests
-echo "Launch Unit Testing"
-ruby -Ilib:test ./tests/test_all.rb
+# echo "Launch Unit Testing"
+# ruby -Ilib:test ./tests/test_all.rb
 
 echo "Init the lock"
 ruby init_lock.rb

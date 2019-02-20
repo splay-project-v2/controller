@@ -35,9 +35,8 @@ class JobdTraceAlt < Jobd
   def self.status_local
     @@dlock_jr.get
     c_splayd = nil
-    $db.from(:jobs).where(Sequel.&({ scheduler: @@scheduler }, { status: 'LOCAL' })).each do |job|
-      # select_all "SELECT * FROM jobs WHERE
-      # scheduler='#{@@scheduler}' AND status='LOCAL'" do |job|
+    $db.from(:jobs).where(scheduler: self.get_scheduler(), status: 'LOCAL').each do |job|
+      $log.debug('New tracealt job discovered')
       # Splayds selection
       c_splayd, occupation, nb_selected_splayds, new_job, do_next = Jobd.status_local_common(job)
 
@@ -287,6 +286,7 @@ end
 						job_id='#{job[:id]}' AND selected='TRUE'")
 
       else
+        $log.debug("Register Time Out -> normal_ok = #{normal_ok} - mandatory_ok = #{mandatory_ok}")
         Jobd.status_registering_common(job)
       end
     end

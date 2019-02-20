@@ -37,7 +37,7 @@ class JobdStandard < Jobd
     @@dlock_jr.get
     c_splayd = nil
     $db.from(:jobs).where(scheduler: self.get_scheduler(), status: 'LOCAL').each do |job|
-      $log.info('New job discovered')
+      $log.debug('New standard job discovered')
       # Splayds selection
       c_splayd, occupation, nb_selected_splayds, new_job, do_next = status_local_common(job)
       # If this job cannot be submitted immediately, jump to the next one
