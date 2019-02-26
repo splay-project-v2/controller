@@ -45,7 +45,7 @@ puts
 
 # Reset Distributed Locks
 $db = DBUtils.get_new
-$db["UPDATE locks SET job_reservation='0' WHERE id ='1'"]
+$db.run("UPDATE locks SET job_reservation='0' WHERE id ='1'")
 # Init used the $db
 Splayd.init
 $db.disconnect

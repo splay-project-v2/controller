@@ -51,16 +51,16 @@ class Blacklistd
 								splayd_id='#{splayd[:id]}' AND
 								command='BLACKLIST'"].first
         if !action
-          $db["INSERT INTO actions SET
+          $db.run("INSERT INTO actions SET
 									splayd_id='#{splayd[:id]}',
 									command='BLACKLIST',
-									data='#{bl.to_json}'"]
+									data='#{bl.to_json}'")
         else
-          $db["UPDATE actions SET
+          $db.run("UPDATE actions SET
 									data='#{bl.to_json}'
 									WHERE
 									splayd_id='#{splayd[:id]}' AND
-									command='BLACKLIST'"]
+									command='BLACKLIST'")
         end
       end
     end

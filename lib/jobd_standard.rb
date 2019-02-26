@@ -120,10 +120,10 @@ class JobdStandard < Jobd
       mandatory_ok = true
 
       $db["SELECT * FROM job_mandatory_splayds WHERE job_id='#{job[:id]}'"].each do |mm|
-        next if $db.run("SELECT id FROM splayd_selections WHERE
+        next if $db["SELECT id FROM splayd_selections WHERE
     					  splayd_id='#{mm[:splayd_id]}' AND
     					  job_id='#{job[:id]}' AND
-    					  replied='TRUE'").first
+    					  replied='TRUE'"].first
 
         mandatory_ok = false
         break

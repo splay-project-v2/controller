@@ -437,6 +437,7 @@ class Jobd
   end
 
   def self.select_splayds(job)
+    # TODO : Wtf ver = nil and after unless var => remove unless ?
     c_splayd = nil
     # Cache at the first call
     unless c_splayd
@@ -491,7 +492,7 @@ class Jobd
     # Compute the number of splayds with the required characteristics
     if occupation.size < job[:nb_splayds]
       nb_total = 0
-      $db[filter_query.to_s].each do |_m|
+      $db[filter_query].each do |_m|
         nb_total += 1
       end
       # Set flag if not enough splayds are available
@@ -558,10 +559,9 @@ class Jobd
 
   def self.status_registering_common(job)
     if Time.now.to_i > job[:status_time] + @@register_timeout
+      $log.info("A Job timeout the registration!")
       # TIMEOUT !
-
       $db.run("DELETE FROM actions WHERE job_id='#{job[:id]}' AND command='REGISTER'")
-
       # send unregister action
       # We need to unregister the job on all the splayds.
       $db["SELECT * FROM splayd_selections WHERE job_id='#{job[:id]}'"].each do |m_s|

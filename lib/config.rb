@@ -68,7 +68,7 @@ class SplayControllerConfig
   UnseenInterval = 60
 
   # Jobd
-  RegisterTimeout = 30
+  RegisterTimeout = 60
   MaxQueueTimeout = 3600
   JobPollTime = 1
   # Allow native lib/jobs to be submitted
