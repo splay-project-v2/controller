@@ -5,8 +5,8 @@ RUN mkdir -p /usr/splay
 
 WORKDIR /usr/splay
 
-RUN apt-get update -qq && apt-get -y --no-install-recommends install \
-  build-essential rubygems less mysql-client default-libmysqlclient-dev libssl-dev openssl
+RUN apt-get update -qq && apt-get -y --no-install-recommends install libgmp-dev \
+    build-essential rubygems less mysql-client default-libmysqlclient-dev libssl-dev openssl
 
 
 COPY Gemfile ./
