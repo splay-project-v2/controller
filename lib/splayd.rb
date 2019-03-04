@@ -32,11 +32,11 @@ class Splayd
 
   def self.reset_unseen
     # $db.from(:splayds).where("last_contact_time < ? AND ( status = 'AVAILABLE' OR status = 'UNAVAILABLE' OR status = 'PREAVAILABLE')", Time.now.to_i - @@unseen_timeout).each do |splayd|
-    $db.run "SELECT * FROM splayds WHERE
+    $db["SELECT * FROM splayds WHERE
   		last_contact_time<'#{Time.now.to_i - @@unseen_timeout}' AND
   		(status='AVAILABLE' OR
   		status='UNAVAILABLE' OR
-  		status='PREAVAILABLE')" do |splayd|
+  		status='PREAVAILABLE')"] do |splayd|
       $log.debug("Splayd #{splayd[:id]} (#{splayd[:ip]} - #{splayd[:status]}) not seen " +
         "since #{@@unseen_timeout} seconds (#{splayd[:last_contact_time]}) => RESET")
       # We kill the thread if there is one
@@ -240,8 +240,8 @@ class Splayd
   end
 
   def action_failure
-    $db.run "UPDATE actions SET status='FAILURE'
-    		WHERE status='SENDING' AND splayd_id='#{@id}'"
+    $db.run("UPDATE actions SET status='FAILURE'
+    		WHERE status='SENDING' AND splayd_id='#{@id}'")
   end
 
   def available
