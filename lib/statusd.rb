@@ -37,7 +37,7 @@ class Statusd
         # If we have not already a pending command.
         action = $db["SELECT * FROM actions WHERE
 							splayd_id='#{m_s[:splayd_id]}' AND
-							command='STATUS'"]
+							command='STATUS'"].first
 
         next if action
 

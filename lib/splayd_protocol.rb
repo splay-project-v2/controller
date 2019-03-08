@@ -70,7 +70,7 @@ class SplaydProtocol
     $log.info("New splayd created, its ID:  #{@splayd.row[:id]}")
     if !@splayd.row[:id] || (@splayd.row[:status] == 'DELETED')
       refused "That splayd doesn't exist or was deleted: #{key}"
-     end
+    end
     if @@nat_gateway_ip && (@ip == @@nat_gateway_ip)
       if key =~ /NAT_([^_]*)_.*/ || key =~ /NAT_(.*)/
         $log.info("#{@splayd}: IP change (NAT) from #{@ip} to #{Regexp.last_match(1)}")
@@ -78,7 +78,7 @@ class SplaydProtocol
       else
         $log.info("#{@splayd[:id]}: IP of NAT gateway without replacement.")
       end
-     end
+    end
     # if not @splayd.check_and_set_preavailable
     #  refused "Your splayd is already connected. " +
     #     "Try to kill an existing process or wait " +
@@ -89,65 +89,65 @@ class SplaydProtocol
 
     old_ip = @splayd.row[:ip]
     begin
-       SplaydServer.threads[@id] = Thread.current
+      SplaydServer.threads[@id] = Thread.current
 
-       # update ip if needed
-       @splayd.update('ip', @ip) if @ip != old_ip
+      # update ip if needed
+      @splayd.update('ip', @ip) if @ip != old_ip
 
-       # check if we can restore the session or not
-       if (session != @splayd.row[:session]) || (@ip != old_ip)
-         same = false
-         @splayd.reset # (change session too)
-       else
-         same = true
-       end
+      # check if we can restore the session or not
+      if (session != @splayd.row[:session]) || (@ip != old_ip)
+        same = false
+        @splayd.reset # (change session too)
+      else
+        same = true
+      end
 
-       @so.write 'OK'
-       if @splayd.row[:session]
-         @so.write @splayd.row[:session]
-       else
-         @so.write 'NULL'
-       end
+      @so.write 'OK'
+      if @splayd.row[:session]
+        @so.write @splayd.row[:session]
+      else
+        @so.write 'NULL'
+      end
 
-       if same
-         $log.info("#{@splayd}: Session OK")
-       else
-         @so.write 'INFOS'
-         @so.write @ip
-         raise ProtocolError, 'INFOS not OK' if @so.read != 'OK'
+      if same
+        $log.info("#{@splayd}: Session OK")
+      else
+        @so.write 'INFOS'
+        @so.write @ip
+        raise ProtocolError, 'INFOS not OK' if @so.read != 'OK'
 
-         infos = @so.read # no addslashes (json)
+        infos = @so.read # no addslashes (json)
 
-         @splayd.insert_splayd_infos(infos)
-         @splayd.update_splayd_infos
+        @splayd.insert_splayd_infos(infos)
+        @splayd.update_splayd_infos
 
-         bl = Splayd.blacklist
-         @so.write 'BLACKLIST'
-         @so.write bl.to_json
-         raise ProtocolError, 'BLACKLIST not OK' if @so.read != 'OK'
+        bl = Splayd.blacklist
+        @so.write 'BLACKLIST'
+        @so.write bl.to_json
+        raise ProtocolError, 'BLACKLIST not OK' if @so.read != 'OK'
 
-         logv = {}
-         logv['ip'] = @@logd_ip
-         logv['port'] = @@logd_port + rand(@@num_logd)
-         logv['max_size'] = @@log_max_size
-         @so.write 'LOG'
-         @so.write logv.to_json
-         raise ProtocolError, 'LOG not OK' if @so.read != 'OK'
+        logv = {}
+        logv['ip'] = @@logd_ip
+        logv['port'] = @@logd_port + rand(@@num_logd)
+        logv['max_size'] = @@log_max_size
+        @so.write 'LOG'
+        @so.write logv.to_json
+        raise ProtocolError, 'LOG not OK' if @so.read != 'OK'
 
-         $log.info("#{@splayd}: Log port: #{logv['port']}")
-       end
-       $log.info("#{@splayd}: Auth OK")
-       @splayd.available
+        $log.info("#{@splayd}: Log port: #{logv['port']}")
+      end
+      $log.info("#{@splayd}: Auth OK")
+      @splayd.available
     rescue StandardError => e
       # restore previous status (REGISTER, UNAVAILABLE or RESET)
       @splayd.update('status', @splayd.row[:status])
       raise e
-     end
+    end
 
     if (@ip != old_ip) && @@localize
       $log.info("#{@splayd}: Localization")
       @splayd.localize
-     end
+    end
 
     # TODO: Invariant check @splayd.row must be == to a new fetch of infos
   end

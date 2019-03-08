@@ -127,7 +127,6 @@ def watch(job)
 
     sleep(1)
     j = $db.from(:jobs).where(ref: job[:ref]).first
-    # select_one "SELECT * FROM jobs WHERE ref='#{job['ref']}'"
     if j[:status] != old_status
       puts 'Job status in the DB:'
       puts j[:status]
@@ -136,7 +135,6 @@ def watch(job)
           # select_all "SELECT * FROM splayd_selections WHERE job_id='#{j['id']}'
           #    AND selected='TRUE'" do |ms|
           m = $db.from(:splayds).where(id: ms[:splayd_id]).first
-          # select_one "SELECT * FROM splayds WHERE id='#{ms['splayd_id']}'"
           if j[:network_nb_ports] > 0
             puts "    #{m[:id]} #{m[:name]} #{m[:ip]} #{ms[:port]} - #{ms[:port] +
           			j['network_nb_ports'] - 1}"

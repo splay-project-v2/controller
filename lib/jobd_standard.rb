@@ -36,8 +36,8 @@ class JobdStandard < Jobd
   def self.status_local
     @@dlock_jr.get
     c_splayd = nil
-    $db.from(:jobs).where(scheduler: self.get_scheduler(), status: 'LOCAL').each do |job|
-      $log.debug('New standard job discovered')
+    $db[:jobs].where(scheduler: get_scheduler, status: 'LOCAL').each do |job|
+      $log.debug('New standard job discovered LOCAL -> REGISTER')
       # Splayds selection
       c_splayd, occupation, nb_selected_splayds, new_job, do_next = status_local_common(job)
       # If this job cannot be submitted immediately, jump to the next one
@@ -58,7 +58,7 @@ class JobdStandard < Jobd
         count += 1
         break if count >= nb_selected_splayds
       end
-      $db.from(:job_mandatory_splayds).where(job_id: job[:id]).each do |mm|
+      $db[:job_mandatory_splayds].where(job_id: job[:id]).each do |mm|
         #  select_all "SELECT * FROM job_mandatory_splayds
         #     WHERE job_id='#{job['id']}'" do |mm|
         splayd_id = mm[:splayd_id]
@@ -268,4 +268,4 @@ class JobdStandard < Jobd
       kill_job(job, 'max execution time')
     end
   end
-  end
+end

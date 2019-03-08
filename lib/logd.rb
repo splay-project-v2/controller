@@ -69,7 +69,7 @@ class LogdServer
         # TODO: make a static function in Splayd.
         splayd = $db["SELECT id FROM splayds WHERE
 						(status='AVAILABLE' OR status='UNAVAILABLE') AND
-						ip='#{ip}'"]
+						ip='#{ip}'"].first
 
         if splayd || (@@nat_gateway_ip && (ip == @@nat_gateway_ip))
           Logd.new(socket).run
@@ -147,41 +147,41 @@ class Logd
 							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
-							jobs.status='RUNNING' AND
+							(jobs.status='RUNNING' or jobs.status='ENDED') AND
 							splayds.session='#{splayd_session}' AND
 							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id"]
+							splayd_selections.splayd_id=splayds.id"].first
         else
           # We verify that the job exists and runs on a splayd that have this IP.
           job = $db["SELECT
 							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
 							FROM splayds, splayd_selections, jobs WHERE
 							jobs.ref='#{job_ref}' AND
-							jobs.status='RUNNING' AND
+							(jobs.status='RUNNING' or jobs.status='ENDED') AND
 							splayds.ip='#{ip}' AND
 							splayds.session='#{splayd_session}' AND
 							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id"]
+							splayd_selections.splayd_id=splayds.id"].first
         end
 
         jobd_localtime = @so.gets.chop
-
-        # Ping2::TCP.service_check = true #prevents false negatives, the host is UP for sure.
-        # BUG : TODO : find a way to approximate rtt
-        # p1 = Net::Ping::TCP.new(host: ip, port: 7)
-        t0 = Time.now
-        # p1.ping # do the ping
-        rtt = (Time.now - t0) / 2
-
-        ctrl_time = Time.now
-        t = jobd_localtime.split('.')
-        jt = Time.at(t[0].to_i, t[1].to_i)
-        difftime = ctrl_time - jt
-        $log.info("Splayd (#{job[:splayd_id]}) remote-time before job: #{jt.strftime('%H:%M:%S')}.#{jt.usec} DIFF: #{difftime} RTT: #{rtt}")
-
-        adjust_ts(jt, difftime, rtt)
-        
         if job
+          # Ping2::TCP.service_check = true #prevents false negatives, the host is UP for sure.
+          # BUG : TODO : find a way to approximate rtt
+          # p1 = Net::Ping::TCP.new(host: ip, port: 7)
+          t0 = Time.now
+          # p1.ping # do the ping
+          rtt = (Time.now - t0) / 2
+
+          ctrl_time = Time.now
+          t = jobd_localtime.split('.')
+          jt = Time.at(t[0].to_i, t[1].to_i)
+          difftime = ctrl_time - jt
+
+          $log.info("Splayd (#{job[:splayd_id]}) remote-time before job: #{jt.strftime('%H:%M:%S')}.#{jt.usec} DIFF: #{difftime} RTT: #{rtt}")
+
+          adjust_ts(jt, difftime, rtt)
+        
           # TODO: replace
           # @so.set_timeout(24 * 3600)
           fname = "#{@@log_dir}/#{job_ref}"
@@ -247,7 +247,7 @@ class Logd
             file.close unless file.nil?
           end
         else
-          $log.warn("The job #{job_ref} doesn't exists on #{ip} (or just killed)")
+          $log.warn("The job #{job_ref} doesn't exists on #{ip} (or just killed, session : #{splayd_session})")
         end
       rescue StandardError => e
         $log.error(e.class.to_s + ': ' + e.to_s + "\n" + e.backtrace.join("\n"))

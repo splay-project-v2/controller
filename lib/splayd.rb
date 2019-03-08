@@ -10,13 +10,13 @@ class Splayd
   @row = nil # A pointer to the row in the database for this splayd
 
   def initialize(id)
-    @row = $db.from(:splayds)[:id => id]
+    @row = $db[:splayds].first(:id => id)
     if not @row
-      @row = $db.from(:splayds)[:key => id]
+      @row = $db[:splayds].first(:key => id)
     end
     if not @row and @@auto_add
       $db.from(:splayds).insert(:key => id)
-      @row = $db.from(:splayds)[:key => id]
+      @row = $db[:splayds].first(:key => id)
     end
     if @row then
       @id = @row[:id]
@@ -36,7 +36,7 @@ class Splayd
   		last_contact_time<'#{Time.now.to_i - @@unseen_timeout}' AND
   		(status='AVAILABLE' OR
   		status='UNAVAILABLE' OR
-  		status='PREAVAILABLE')"] do |splayd|
+  		status='PREAVAILABLE')"].each do |splayd|
       $log.debug("Splayd #{splayd[:id]} (#{splayd[:ip]} - #{splayd[:status]}) not seen " +
         "since #{@@unseen_timeout} seconds (#{splayd[:last_contact_time]}) => RESET")
       # We kill the thread if there is one
@@ -61,7 +61,7 @@ class Splayd
   end
 
   def self.has_job(splayd_id, job_id)
-    sj = $db.from(:splayd_jobs).where(Sequel.&({ splayd_id: splayd_id }, { job_id: job_id })).first
+    sj = $db.from(:splayd_jobs).where(splayd_id: splayd_id, job_id: job_id).first
     if sj then return true else return false end
   end
 
@@ -112,11 +112,10 @@ class Splayd
     # to protect the $db object while in use.
     @@transaction_mutex.synchronize do
       $db.transaction do
-        status = $db[:splayds].where(:id => @id).get(:status)
-        puts "STATUS"
-        puts status
+        status = $db[:splayds].where(id: @id).get(:status).first
+        $log.info("STATUS : #{status}")
         if status == 'REGISTERED' or status == 'UNAVAILABLE' or status == 'RESET' then
-          $db.from(:splayds).where(id: @id).update(:status => 'PREAVAILABLE')
+          $db.from(:splayds).where(id: @id).update(status: 'PREAVAILABLE')
           r = true
         end
       end # COMMIT issued only here
@@ -126,7 +125,7 @@ class Splayd
 
   # Check that this IP is not used by another splayd.
   def ip_check ip
-    query = $db.run "SELECT * FROM splayds WHERE ip='#{ip}' AND `key`!='#{@row.get(:key)}' AND (status='AVAILABLE' OR status='UNAVAILABLE' OR status='PREAVAILABLE')"
+    query = $db.run("SELECT * FROM splayds WHERE ip='#{ip}' AND `key`!='#{@row.get(:key)}' AND (status='AVAILABLE' OR status='UNAVAILABLE' OR status='PREAVAILABLE')")
     if ip == "127.0.0.1" or ip == "::ffff:127.0.0.1" or not query
       true
     else
@@ -168,7 +167,7 @@ class Splayd
   end
 
   def update_splayd_infos
-    @row = $db.from(:splayds)[:id => @id]
+    @row = $db[:splayds].first(:id => id)
   end
 
   def localize
@@ -320,7 +319,7 @@ class Splayd
   def s_j_status data
     data = JSON.parse data
     $log.debug("Data content (status splayd): #{data}")
-    $db.from(:splayd_jobs).where(Sequel.&({ splayd_id: @id }, { status: 'RESERVED' })).each do |sj|
+    $db.from(:splayd_jobs).where(splayd_id: @id, status: 'RESERVED').each do |sj|
       job = $db.from(:jobs).where(id: sj[:job_id]).first
       # There is no difference in Lua between Hash and Array, so when it's
       # empty (an Hash), we encoded it like an empty Array.

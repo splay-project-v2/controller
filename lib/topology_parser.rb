@@ -18,6 +18,7 @@
 require 'nokogiri' # #to quickly read XML. gems install nokogiri
 # require 'dijkstra'
 require File.expand_path(File.join(File.dirname(__FILE__), 'dijkstra'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'common'))
 
 class TopologyParser
   def initialize
@@ -40,23 +41,13 @@ class TopologyParser
 
   # #return the built graph
   def parse(input, from_file = true)
-    # print(input)
+    $log.debug("Parse a Topology")
     if from_file
       xml = File.open(input, 'r')
       graph = Nokogiri::XML(xml)
       xml.close
     else
-      # puts("Current Ruby  version: "+RUBY_VERSION)
-      # puts("Parsing topology file [raw]:"+input)
-      # puts("Parsing topology file [class]:"+input.class.to_s)
-      # puts("Parsing topology file:"+input[2..(input.length-3)].chomp)
-
-      if RUBY_VERSION == '1.9.2'
-        input.delete! "\n", "\t", '\\'
-        graph = Nokogiri::XML((input[2..(input.length - 3)]))
-      else
-        graph = Nokogiri::XML(input)
-      end
+      graph = Nokogiri::XML(input)
     end
 
     ## full traversal here
@@ -119,7 +110,6 @@ class TopologyParser
         end
       end
     end
-    $log.info('Topology parsing complete.') if $log
     # complete the graph with the missing edges if any
     added_edges.each do |key, _value|
       # key.each{|a| puts a}

@@ -111,7 +111,7 @@ class JobdTrace < Jobd
     s_s = $db["SELECT * FROM splayd_selections
 				WHERE
 				job_id='#{job['id']}' AND
-				trace_number='#{trace_number}'"]
+				trace_number='#{trace_number}'"].first
     if s_s[:trace_status] == 'RUNNING'
       s = Splayd.new(s_s[:splayd_id])
       $db.run("UPDATE splayd_selections SET
@@ -150,7 +150,7 @@ class JobdTrace < Jobd
   def self.repair(job, old)
     $log.warn("TRACE #{job['id']}: splayd #{old['splayd_id']} has failed.")
 
-    new = $db["SELECT * FROM splayds, splayd_selections
+    new_splayd = $db["SELECT * FROM splayds, splayd_selections
 				WHERE
 				splayd_selections.job_id='#{job['id']}' AND
 				splayd_selections.trace_number IS NULL AND
@@ -158,9 +158,9 @@ class JobdTrace < Jobd
 				splayd_selections.reset='FALSE' AND
 				splayds.id = splayd_selections.splayd_id AND
 				splayds.status='AVAILABLE'
-				ORDER BY reply_time"]
+				ORDER BY reply_time"].first
 
-    unless new
+    unless new_splayd
       $log.error("TRACE #{job['id']}: repair FAILED, no free splayds.")
       return false
     end
@@ -471,7 +471,7 @@ class JobdTrace < Jobd
       # TODO: error msg...
 
       unless $db["SELECT * FROM splayd_jobs
- 				WHERE job_id='#{job[:id]}' AND status!='RESERVED'"]
+ 				WHERE job_id='#{job[:id]}' AND status!='RESERVED'"].first
         set_job_status(job[:id], 'ENDED')
       end
     end

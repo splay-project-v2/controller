@@ -87,7 +87,7 @@ end
 
   # Return the scheduling description as an array
   def self.get_scheduling(job)
-    job = $db["SELECT scheduler_description FROM jobs WHERE id='#{job[:id]}'"]
+    job = $db["SELECT scheduler_description FROM jobs WHERE id='#{job[:id]}'"].first
     job[:scheduler_description].split("\n")
   end
 

@@ -146,8 +146,7 @@ class Jobd
     list = {}
     list['ref'] = job[:ref]
     list['nodes'] = []
-    topo_xml = $db.from(:jobs).where(ref: job[:ref])[:topology]
-    # select_one "SELECT topology FROM jobs WHERE ref='#{job['ref']}'"
+    topo_xml = $db[:jobs].select(:topology).where(ref: job[:ref]).first[:topology]
     if topo_xml && !topo_xml[0].to_s.empty?
       $log.info("Parsing topology: '#{topo_xml}' #{topo_xml.class} #{topo_xml.length}")
       @parser = TopologyParser.new ## todo cache it
@@ -165,8 +164,7 @@ class Jobd
 
         c += 1
       end
-      res = $db.from(:splayds).where(id: m_s[:splayd_id]).first
-      # select_one "SELECT ip FROM splayds WHERE id='#{m_s['splayd_id']}'"
+      res = $db[:splayds].select(:ip).where(id: m_s[:splayd_id]).first
       el = {}
       el['id'] =   m_s[:splayd_id]
       el['ip'] =   res[:ip]
@@ -222,8 +220,8 @@ class Jobd
   # Send the list of everybody selected by the query, to everybody selected by
   # the query.
   # (query should return values with splayd_id)
-  def self.send_all_list(job, query)
-    m_s_s = $db[query]
+  def self.send_all_list(job, selected_query)
+    m_s_s = $db[selected_query]
     case job[:list_type]
     when 'HEAD' # simple head list of job['list_size'] element
       list_json = head_list(job, m_s_s)
@@ -266,9 +264,6 @@ class Jobd
       q_act = q_act[0, q_act.length - 1]
       # puts "ACTIONS"
       $db.run("INSERT INTO actions (splayd_id, job_id, command, data) VALUES #{q_act}")
-      # $db.from(:actions).each do |act|
-      #  puts act
-      # end
     end
   end
 
@@ -321,7 +316,7 @@ class Jobd
         bytecode_filter = " AND endianness='#{job[:endianness]}' "
         bytecode_filter += " AND bits='#{job[:bits]}' "
       else
-        puts 'Code is not in LUA 5.1'
+        $log.warn('Code is not in LUA 5.1')
         status_msg += "The bytecode isn't Lua 5.1 bytecode.\n"
         set_job_status(job[:id], 'NO_RESSOURCES', status_msg)
         # next
@@ -352,13 +347,13 @@ class Jobd
 
     # We don't take splayds already mandatory (see later)
     mandatory_filter = ''
-    $db["SELECT * FROM job_mandatory_splayds WHERE job_id='#{job[:id]}'"].each do |mm|
+    $db["SELECT splayd_id FROM job_mandatory_splayds WHERE job_id='#{job[:id]}'"].each do |mm|
       mandatory_filter += " AND splayds.id!=#{mm[:splayd_id]} "
     end
 
     designated_filter = ''
     pos = 0
-    $db["SELECT * FROM job_designated_splayds WHERE job_id='#{job[:id]}'"].each do |jds|
+    $db["SELECT splayd_id FROM job_designated_splayds WHERE job_id='#{job[:id]}'"].each do |jds|
       designated_filter += if pos == 0
                              " AND (splayds.id=#{jds[:splayd_id]}"
                            else
@@ -452,9 +447,6 @@ class Jobd
         c_splayd['nb_nodes'][m[:id]] = 0
       end
       $db['SELECT splayd_id, COUNT(job_id) as nb_nodes FROM splayd_jobs GROUP BY splayd_id'].each do |ms|
-        # select_all "SELECT splayd_id, COUNT(job_id) as nb_nodes
-        #    FROM splayd_jobs
-        #    GROUP BY splayd_id" do |ms|
         c_splayd['nb_nodes'][ms[:splayd_id]] = ms[:nb_nodes]
       end
     end
@@ -476,7 +468,7 @@ class Jobd
     designated_ok = true
     no_resources = false
 
-    $db["SELECT * FROM job_designated_splayds WHERE job_id='#{job[:id]}'"].each do |jds|
+    $db["SELECT splayd_id FROM job_designated_splayds WHERE job_id='#{job[:id]}'"].each do |jds|
       ds = $db["SELECT id FROM splayds WHERE id='#{jds[:splayd_id]}'"].first
       if ds
         if c_splayd['nb_nodes'][ds[:id]] == c_splayd['max_number'][ds[:id]]
