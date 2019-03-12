@@ -50,7 +50,7 @@ class LLenc
   def write(datas)
     _log ">>> #{datas}"
     Timeout.timeout(@write_timeout, StandardError) do
-      @socket.write(datas.length.to_s + "\n" + datas) if datas
+      @socket.write(datas.bytesize.to_s + "\n" + datas) if datas
     end
   end
 

@@ -176,7 +176,7 @@ class JobdStandard < Jobd
   # RUNNING => ENDED
   def self.status_running
     $db["SELECT * FROM jobs WHERE scheduler='#{get_scheduler}' AND status='RUNNING'"].each do |job|
-      $db["SELECT * FROM splayd_jobs WHERE job_id='#{job[:id]}' AND status!='RESERVED'"].each do |_tmp|
+      unless $db["SELECT * FROM splayd_jobs WHERE job_id='#{job[:id]}' AND status!='RESERVED'"].first
         set_job_status(job[:id], 'ENDED')
       end
     end
