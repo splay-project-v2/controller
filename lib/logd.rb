@@ -181,7 +181,7 @@ class Logd
           $log.info("Splayd (#{job[:splayd_id]}) remote-time before job: #{jt.strftime('%H:%M:%S')}.#{jt.usec} DIFF: #{difftime} RTT: #{rtt}")
 
           adjust_ts(jt, difftime, rtt)
-        
+
           # TODO: replace
           # @so.set_timeout(24 * 3600)
           fname = "#{@@log_dir}/#{job_ref}"

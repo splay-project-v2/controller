@@ -318,8 +318,7 @@ class Splayd
 
   def s_j_status data
     data = JSON.parse data
-    $log.debug("Data content (status splayd): #{data}")
-    $db.from(:splayd_jobs).where(splayd_id: @id, status: 'RESERVED').each do |sj|
+    $db.from(:splayd_jobs).where(splayd_id: @id).exclude(status: 'RESERVED').each do |sj|
       job = $db.from(:jobs).where(id: sj[:job_id]).first
       # There is no difference in Lua between Hash and Array, so when it's
       # empty (an Hash), we encoded it like an empty Array.
