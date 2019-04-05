@@ -75,10 +75,10 @@ class LogdServer
           Logd.new(socket).run
         else
           $log.info("Unknown IP (#{ip}) trying to log...")
-					begin socket.close; 
-					rescue StandardError => e
-						$log.error(e.class.to_s + ': ' + e.to_s + "\n" + e.backtrace.join("\n"))
-					end
+          begin socket.close
+          rescue StandardError => e
+            $log.error(e.class.to_s + ': ' + e.to_s + "\n" + e.backtrace.join("\n"))
+          end
         end
       end
     rescue StandardError => e
@@ -118,8 +118,9 @@ class Logd
     end
     # $log.debug("Parsing raw message: #{raw_msg}")
     toks = raw_msg.split(' ')
-    ts = Time.at(toks[0].to_i, toks[1].to_i)
-    msg = raw_msg[toks[0].size + toks[1].size + 1, raw_msg.size]
+    ts = Time.at(toks[0].to_i)
+    msg = raw_msg[toks[0].size + 1, raw_msg.size]
+    msg = '' if msg.nil?
     [ts, msg]
   end
 
@@ -131,40 +132,39 @@ class Logd
   def run
     Thread.new do
       begin
-        $log.debug('Log client accepted.')
         ip = @so.peeraddr[3]
-        # TODO: replace
-        # @so.set_timeout 60
-
         job_ref = @so.gets.chop
 
-        # permit to identify splayds running on a same IP (local test) or behing
+        # Permit to identify splayds running on a same IP (local test) or behing
         # a NAT (same visible IP)
         splayd_session = @so.gets.chop
 
+        jobd_localtime = @so.gets.chop
+
+        $log.debug("Try to get logs of #{job_ref} (#{ip}) - session = #{splayd_session} - localtime = #{jobd_localtime} ")
+
         if @@nat_gateway_ip && (ip == @@nat_gateway_ip)
           job = $db["SELECT
-							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
-							FROM splayds, splayd_selections, jobs WHERE
-							jobs.ref='#{job_ref}' AND
-							(jobs.status='RUNNING' or jobs.status='ENDED') AND
-							splayds.session='#{splayd_session}' AND
-							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id"].first
+            jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
+            FROM splayds, splayd_selections, jobs WHERE
+            jobs.ref='#{job_ref}' AND
+            jobs.status='RUNNING' AND
+            splayds.session='#{splayd_session}' AND
+            splayd_selections.job_id=jobs.id AND
+            splayd_selections.splayd_id=splayds.id"].first
         else
           # We verify that the job exists and runs on a splayd that have this IP.
           job = $db["SELECT
-							jobs.id AS id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
-							FROM splayds, splayd_selections, jobs WHERE
-							jobs.ref='#{job_ref}' AND
-							(jobs.status='RUNNING' or jobs.status='ENDED') AND
-							splayds.ip='#{ip}' AND
-							splayds.session='#{splayd_session}' AND
-							splayd_selections.job_id=jobs.id AND
-							splayd_selections.splayd_id=splayds.id"].first
+            jobs.id, splayds.id AS splayd_id, splayds.ip AS splayd_ip
+            FROM splayds, splayd_selections, jobs WHERE
+            jobs.ref='#{job_ref}' AND
+            jobs.status='RUNNING' AND
+            splayds.ip='#{ip}' AND
+            splayds.session='#{splayd_session}' AND
+            splayd_selections.job_id=jobs.id AND
+            splayd_selections.splayd_id=splayds.id"].first
         end
 
-        jobd_localtime = @so.gets.chop
         if job
           # Ping2::TCP.service_check = true #prevents false negatives, the host is UP for sure.
           # BUG : TODO : find a way to approximate rtt
@@ -189,7 +189,7 @@ class Logd
           last_ts = nil
           $log.info("Logd retrieved job ref #{job_ref} into #{fname}")
           begin
-            file = File.new(fname, File::WRONLY | File::APPEND | File::CREAT, 0777)
+            file = File.new(fname, File::WRONLY | File::APPEND | File::CREAT, 0o777)
             # http://ruby-doc.org/core-1.8.7/IO.html#method-i-sync
             # This affects future operations and causes output to be written without block buffering.
             file.sync = true

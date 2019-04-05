@@ -215,6 +215,7 @@ class Splayd
 
   # DB cleaning when a splayd is reset.
   def reset
+    $log.debug("Reset splayd id = #{@id}")
     session = Splayd.gen_session
 
     $db.from(:splayds).where(id: @id).update(:status => 'RESET', :session => session)
@@ -223,6 +224,8 @@ class Splayd
     $db.from(:splayd_availabilities).insert(:splayd_id => @id, :status => 'RESET', :time => Time.now.to_i)
     # For trace job
     $db.from(:splayd_selections).where(splayd_id: @id).update(:reset => 'TRUE')
+
+    update_splayd_infos
   end
 
   def unavailable
