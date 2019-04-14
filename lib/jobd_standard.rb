@@ -74,11 +74,11 @@ class JobdStandard < Jobd
       $db.run("INSERT INTO splayd_selections (splayd_id, job_id) VALUES #{q_sel}")
       $db.run("INSERT INTO splayd_jobs (splayd_id, job_id, status) VALUES #{q_job}")
       $db.run("INSERT INTO actions (splayd_id, job_id, command, status) VALUES #{q_act}")
-      $db.run("UPDATE actions SET data='#{addslashes(new_job)}', status='WAITING'
-  		  WHERE job_id='#{job[:id]}' AND command='REGISTER' AND status='TEMP'")
+      $db.from(:actions).where(job_id: job[:id], command: 'REGISTER', status: 'TEMP').update(data: new_job, status: 'WAITING')
+      
       set_job_status(job[:id], 'REGISTERING')
     end
-    # $log.info('End of status_local()')
+  ensure 
     @@dlock_jr.release
   end
 
@@ -236,6 +236,7 @@ class JobdStandard < Jobd
 
       set_job_status(job[:id], 'REGISTERING')
     end
+  ensure 
     @@dlock_jr.release
   end
 
