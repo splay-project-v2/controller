@@ -20,10 +20,10 @@
 ## along with Splayd. If not, see <http://www.gnu.org/licenses/>.
 
 class DBConfig
-	SQL_TYPE = "Mysql"
-	SQL_DB = "splay"
-	SQL_HOST = "splay_db"
-	SQL_USER = "splay"
-	SQL_PASS = "splay"
-	SQL_PORT = "3306"
+  SQL_TYPE = 'Mysql'.freeze
+  SQL_DB = 'splay'.freeze
+  SQL_HOST = 'splay_db'.freeze
+  SQL_USER = 'splay'.freeze
+  SQL_PASS = 'splay'.freeze
+  SQL_PORT = '3306'.freeze
 end

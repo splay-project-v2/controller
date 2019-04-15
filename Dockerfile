@@ -5,15 +5,20 @@ RUN mkdir -p /usr/splay
 
 WORKDIR /usr/splay
 
-RUN apt-get update -qq && apt-get -y --no-install-recommends install \
-  build-essential rubygems less mysql-client default-libmysqlclient-dev libssl-dev openssl
+RUN apt-get update -qq && apt-get -y --no-install-recommends install libgmp-dev \
+    build-essential rubygems less mysql-client default-libmysqlclient-dev libssl-dev openssl
 
-RUN gem install json -v 2.1.0
-RUN gem install minitest mysql2 sequel openssl
 
-ADD *.rb ./
-ADD lib ./lib
-ADD deploy_controller.sh .
+COPY Gemfile ./
+
+RUN bundle install
+
+COPY *.rb ./
+COPY lib ./lib
+COPY deploy_controller.sh .
+
+# For testing the lib
+COPY tests ./tests
 
 RUN mkdir -p links
 
