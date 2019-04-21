@@ -1,4 +1,4 @@
-FROM ruby:2.5.3-slim
+FROM ruby:2.5-slim
 LABEL Description="Splay - Controller - Master process orchestrating Daemons and assigning jobs"
 
 RUN mkdir -p /usr/splay
