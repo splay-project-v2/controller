@@ -624,8 +624,7 @@ class Jobd
       set_job_status(job[:id], 'KILLED')
     when 'REGISTERING', 'RUNNING' then
       q_act = ''
-      $db["SELECT * FROM splayd_jobs WHERE
-				      job_id='#{job['id']}'"].each do |m_s|
+      $db["SELECT * FROM splayd_jobs WHERE job_id='#{job[:id]}'"].each do |m_s|
         # STOP doesn't remove the job from the splayd
         q_act += "('#{m_s[:splayd_id]}','#{job[:id]}','FREE', '#{job[:ref]}'),"
       end
