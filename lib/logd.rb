@@ -100,13 +100,16 @@ class Logd
 
   def prefix_ctrl(job)
     ts = Time.now
-    pfix = ts.strftime('%Y-%m-%d %H:%M:%S') << ".#{ts.usec} " << "(#{job[:splayd_id]}) "
+    pfix = ts.strftime('%Y-%m-%d %H:%M:%S.%4N ') << "(#{job[:splayd_id]}) "
     pfix
   end
 
   def prefix(job, ts = nil)
-    ts = Time.now if ts.nil?
-    pfix = ts.strftime('%Y-%m-%d %H:%M:%S') << ".#{ts.usec} " << "(#{job[:splayd_id]}) "
+    if ts.nil? then
+      ts = Time.now
+      $log.warning("prefix of daemon doesn't send timestamp")
+    end
+    pfix = ts.strftime('%Y-%m-%d %H:%M:%S.%4N ') << "(#{job[:splayd_id]}) "
     pfix
   end
 
@@ -118,7 +121,7 @@ class Logd
     end
     # $log.debug("Parsing raw message: #{raw_msg}")
     toks = raw_msg.split(' ')
-    ts = Time.at(toks[0].to_i)
+    ts = Time.at(toks[0].to_f)
     msg = raw_msg[toks[0].size + 1, raw_msg.size]
     msg = '' if msg.nil?
     [ts, msg]
@@ -166,8 +169,7 @@ class Logd
         end
 
         if job
-          # Ping2::TCP.service_check = true #prevents false negatives, the host is UP for sure.
-          # BUG : TODO : find a way to approximate rtt
+          # BUG : TODO : find a way to approximate rtt (doesn't work with docker??)
           # p1 = Net::Ping::TCP.new(host: ip, port: 7)
           t0 = Time.now
           # p1.ping # do the ping
