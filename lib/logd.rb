@@ -114,9 +114,9 @@ class Logd
   end
 
   def extract_timestamp_msg(raw_msg)
-    if raw_msg.nil?
+    if raw_msg.nil? or raw_msg.split(' ').length == 0
       ts = Time.now
-      msg = 'Error receiving message'
+      msg = 'Error receiving/parsing log line : ' + raw_msg.to_s
       return ts, msg
     end
     # $log.debug("Parsing raw message: #{raw_msg}")
