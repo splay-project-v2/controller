@@ -41,7 +41,7 @@ class TopologyParser
 
   # #return the built graph
   def parse(input, from_file = true)
-    $log.debug("Parse a Topology")
+    $log.debug('Parse a Topology')
     if from_file
       xml = File.open(input, 'r')
       graph = Nokogiri::XML(xml)
@@ -57,13 +57,11 @@ class TopologyParser
         elem.traverse do |s|
           # <client-stub dbl_plr="0" dbl_kbps="64" int_delayms="100" int_qlen="10" />
           # <stub-stub dbl_plr="0" dbl_kbps="1000" int_delayms="20" int_qlen="10" />
-          if (s.name == 'client-stub') || s.name == 'stub-stub' || (s.name == 'transit-transit') || (s.name = 'stub-transit') || (s.name = 'client-client')
-            @defaults[s.name] = {}
-            @defaults[s.name]['dbl_plr'] = s['dbl_plr'].to_i if s['dbl_plr']
-            @defaults[s.name]['dbl_kbps'] = s['dbl_kbps'].to_i if s['dbl_kbps']
-            if s['int_delayms'] then @defaults[s.name]['int_delayms'] = s['int_delayms'].to_i end
-            @defaults[s.name]['int_qlen'] = s['int_qlen'].to_i if s['int_qlen']
-          end
+          @defaults[s.name] = {}
+          @defaults[s.name]['dbl_plr'] = s['dbl_plr'].to_i if s['dbl_plr']
+          @defaults[s.name]['dbl_kbps'] = s['dbl_kbps'].to_i if s['dbl_kbps']
+          if s['int_delayms'] then @defaults[s.name]['int_delayms'] = s['int_delayms'].to_i end
+          @defaults[s.name]['int_qlen'] = s['int_qlen'].to_i if s['int_qlen']
         end
       end
     end
@@ -86,11 +84,7 @@ class TopologyParser
 
           # #use defaults, then overwrite if value is given
           edge_attribs['int_delayms'] = @defaults[edge_spec]['int_delayms']
-          unless e['int_delayms'].nil?
-            edge_attribs['int_delayms'] = e['int_delayms'].to_i
-          end
-          #  edge_attribs['int_delayms'] = @defaults[edge_spec]['int_delayms']
-          # end
+          edge_attribs['int_delayms'] = e['int_delayms'].to_i unless e['int_delayms'].nil?
           edge_attribs['dbl_kbps'] = @defaults[edge_spec]['dbl_kbps']
           edge_attribs['dbl_kbps'] = e['dbl_kbps'].to_i unless e['dbl_kbps'].nil?
         end
@@ -120,7 +114,7 @@ class TopologyParser
         @gr.add_edge(key[1], key[0], added_edges[[key[0], key[1]]])
       end
     end
-    $log.info('Topology completion complete.') if $log
+    $log.info('Topology completion complete.')
     @gr
   end
 end
