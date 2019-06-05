@@ -67,7 +67,7 @@ class SplaydProtocol
     session = addslashes(@so.read)
 
     @splayd = Splayd.new(key)
-    $log.info("New splayd created, its ID:  #{@splayd.row[:id]}")
+    $log.info("New splayd created, its ID:  #{@splayd.row[:id]} - key #{key}")
     if !@splayd.row[:id] || (@splayd.row[:status] == 'DELETED')
       refused "That splayd doesn't exist or was deleted: #{key}"
     end

@@ -5,11 +5,11 @@ class SplaydServer
   @@splayd_threads = {}
   def self.threads
     @@splayd_threads
-end
+  end
 
   def self.threads=(threads)
     @@splayd_threads = threads
-end
+  end
 
   def initialize(port = nil)
     @port = port || SplayControllerConfig::SplaydPort
@@ -58,6 +58,7 @@ end
         so = server.accept
         tmpSocket = LLenc.new(so)
         # For now only one Protocol => standard, grid was removed
+        # Then read a empty line containing normally "standard"
         _ = tmpSocket.read
         SplaydProtocol.new(so).run
       end

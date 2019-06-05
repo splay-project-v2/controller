@@ -10,13 +10,16 @@ class Splayd
   @row = nil # A pointer to the row in the database for this splayd
 
   def initialize(id)
-    @row = $db[:splayds].first(:id => id)
-    if not @row
-      @row = $db[:splayds].first(:key => id)
+    if id.to_i.to_s == id then
+      # With id as number and use the id column
+      @row = $db[:splayds].first(id: id)
+    else
+      # With id as ref 
+      @row = $db[:splayds].first(key: id)
     end
     if not @row and @@auto_add
-      $db.from(:splayds).insert(:key => id)
-      @row = $db[:splayds].first(:key => id)
+      $db.from(:splayds).insert(key: id)
+      @row = $db[:splayds].first(key: id)
     end
     if @row then
       @id = @row[:id]

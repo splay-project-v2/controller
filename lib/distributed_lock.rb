@@ -47,15 +47,13 @@ class DistributedLock
         # BEGIN and COMMIT
         # @@db.do "BEGIN"
         @@db.transaction do
+
           locks = @@db.from(:locks).where(id: 1).first
-          # fetch("SELECT * FROM locks
-          #      WHERE id='1' FOR UPDATE")
           if locks[name.to_sym]
             if locks[name.to_sym] == 0
               @@db.from(:locks).where(id: 1).update(name.to_sym => '1')
               ok = true
             end
-            # do "UPDATE locks SET #{name}='1' WHERE id ='1'"
           else
             $log.error("Trying to get a non existant lock: #{name}")
             ok = true
